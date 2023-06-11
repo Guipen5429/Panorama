@@ -161,7 +161,7 @@ public class LoopBuildings : MonoBehaviour
             }
         }
         string camString = string.Join(", ", cameraDir);
-        Debug.Log("카메라방향 : " + camString);
+        /*Debug.Log("카메라방향 : " + camString);*/
 
         //dirChange(방향변환) 생성
         dirChange = new int[cameraDir.Length - 1];

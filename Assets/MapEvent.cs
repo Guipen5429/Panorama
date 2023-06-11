@@ -21,7 +21,7 @@ public class MapEvent : MonoBehaviour
         mapBase = transform.Find("MapBase").gameObject;
         mapBase.SetActive(false);
         eventTime = new bool[]{ false, false, false, false };
-        o = false;
+        o = true;
         b = false;
     }
 
@@ -52,21 +52,14 @@ public class MapEvent : MonoBehaviour
 
             if (w && pinDone && eventTime[1]) { eventTime[1] = false;}
 
-            if (eventTime[2])
+            try
             {
-                try
-                {
-                    MarkAct markAct = GameObject.Find("PlayerMark").GetComponent<MarkAct>();
-                    bool modifyDone = markAct.modifyDone;
-                    if (!modifyDone)
-                    {
-                        eventTime[3] = true;
-                        o = !o;
-                        eventTime[3] = false;
-                    }
-                }
-                catch { }
+                MarkAct markAct = GameObject.Find("PlayerMark").GetComponent<MarkAct>();
+                bool modifyDone = markAct.modifyDone;
+                eventTime[3] = !modifyDone;
+                if (!modifyDone){ o = true; }
             }
+            catch { }
         }
     }
 }

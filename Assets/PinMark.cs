@@ -18,13 +18,17 @@ using UnityEngine.UIElements;
 public class PinMark : MonoBehaviour
 {
     public int[,] pinState = new int[4, 4]; //핀의 상태
+    public int[,] fpinState = new int[4, 4]; //핀의 상태
     public int[] pathX;
     public int[] pathY;
+    public int[] fpathX;
+    public int[] fpathY;
     public bool pinsDone;
     public bool w;
     public int[,] pathDir = new int[4, 4];
 
     public int count;
+    int[] fDir;
 
     private void Awake()
     {
@@ -63,9 +67,31 @@ public class PinMark : MonoBehaviour
                 if (pathX[i] != 3 && pinState[pathX[i] + 1, pathY[0]] != 1) { pinState[pathX[i] + 1, pathY[i]] = 2; }
                 if (pathY[i] != 3 && pinState[pathX[i], pathY[i] + 1] != 1) { pinState[pathX[i], pathY[i] + 1] = 2; }*/
             }
-            
+
             pathDir[pathX[i], pathY[i]] = iDir[i + 1];
         }
+
+        count = 0;
+        for (int i = 0; i < pathX.Length; i++)
+        {
+            if (pinState[pathX[i], pathY[i]] == 3 || pinState[pathX[i], pathY[i]] == 4)
+            {
+                count++;
+            }
+        }
+
+        if (!modifyTime)
+        {
+            try
+            {
+                MarkAct markAct = GameObject.Find("PlayerMark").GetComponent<MarkAct>();
+                pathX = markAct.x;
+                pathY = markAct.y;
+            }
+            catch { }
+        }
+
+
 
         if (pinTime) { pinsDone = false; w = true; }
         if (mapTime && !pinsDone) //무한 복제 방지
@@ -81,34 +107,38 @@ public class PinMark : MonoBehaviour
                 GameObject.Destroy(childTransform.gameObject);
             }
 
-            count = 0;
-
-            for (int i = 0; i < pathX.Length; i++)
-            {
-                if (pinState[pathX[i], pathY[i]] == 3 || pinState[pathX[i], pathY[i]] == 4)
-                {
-                    count++;
-                }
-            }
+            FakeState();
 
             CreatePins();
             if (!routeTime || count != 1)
             {
-                /*if (!modifyTime)
-                {
-                    try
-                    {
-                        MarkAct markAct = GameObject.Find("PlayerMark").GetComponent<MarkAct>();
-                        pathX = markAct.x;
-                        pathY = markAct.y;
-                    }
-                    catch { }
-                }*/
+                Debug.Log("----------------------------------------------");
                 CreateMark();
             }
             pinsDone = true;
         }
         if (!pinTime) { w = false; }
+    }
+
+    public void FakeState()
+    {
+        try
+        {
+            MarkAct markAct = GameObject.Find("PlayerMark").GetComponent<MarkAct>();
+            fpathX = markAct.x;
+            fpathY = markAct.y;
+            MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
+            bool routeTime = mapMove.eventTime[2];
+
+            for (int i = 0; i < fpathX.Length; i++)
+            {
+                if (fpinState[pathX[i], pathY[i]] == 0 || fpinState[pathX[i], pathY[i]] == 1)
+                { fpinState[pathX[i], pathY[i]] = 1; }
+
+                pathDir[pathX[i], pathY[i]] = fDir[i + 1];
+            }
+        }
+        catch { fpinState = pinState; }
     }
 
     public void CreatePins()
@@ -144,14 +174,14 @@ public class PinMark : MonoBehaviour
 
             if (!routeTime)
             {
-                if (pinState[x, y] != 0)
+                if (fpinState[x, y] != 0)
                 {
                     if (x == pathX[0] && y == pathY[0] || x == pathX[pathX.Length - 1] && y == pathY[pathY.Length - 1])
                     {
                         pinImage.sprite = pinSprites2[3];
-                        pinState[x, y] = 2;
+                        fpinState[x, y] = 2;
                     }
-                    else { pinImage.sprite = pinSprites3[7]; pinState[x, y] = 1; }
+                    else { pinImage.sprite = pinSprites3[7]; fpinState[x, y] = 1; }
                     
                     pinDir.Rotate(0, 0, TransDir());
                 }
@@ -159,18 +189,18 @@ public class PinMark : MonoBehaviour
             }
             else
             {
-                if (pinState[x, y] == 1)
-                { pinImage.sprite = pinSprites1[2]; pinDir.Rotate(0, 0, TransDir()); }
-                else if (pinState[x, y] == 2)
+                if (fpinState[x, y] == 1)
+                { pinImage.sprite = pinSprites3[2]; pinDir.Rotate(0, 0, TransDir()); }
+                else if (fpinState[x, y] == 2)
                 { pinImage.sprite = pinSprites1[3]; pinDir.Rotate(0, 0, TransDir()); }
-                else if (pinState[x, y] == 3)
+                else if (fpinState[x, y] == 3)
                 {
-                    pinImage.sprite = (count == 1) ? pinSprites3[5] : pinSprites1[1];
+                    pinImage.sprite = (count == 1) ? pinSprites3[5] : pinSprites3[5];
                     pinDir.Rotate(0, 0, TransDir());
                 }
-                else if (pinState[x, y] == 4)
+                else if (fpinState[x, y] == 4)
                 {
-                    pinImage.sprite = (count == 1) ? pinSprites3[4] : pinSprites3[6];
+                    pinImage.sprite = (count == 1) ? pinSprites3[4] : pinSprites3[4];
                     pinDir.Rotate(0, 0, TransDir());
                 }
                 else { pinImage.sprite = pinSprites1[5]; }
@@ -201,9 +231,9 @@ public class PinMark : MonoBehaviour
             lines[i - 1].name = "Line " + i;
 
             SpriteRenderer lineImage = lines[i - 1].GetComponent<SpriteRenderer>();
-            if ((pinState[pathX[i - 1], pathY[i - 1]] == 3 && pinState[pathX[i], pathY[i]] == 3) ||
-                (pinState[pathX[i - 1], pathY[i - 1]] == 4 && pinState[pathX[i], pathY[i]] == 3) ||
-                (pinState[pathX[i - 1], pathY[i - 1]] == 3 && pinState[pathX[i], pathY[i]] == 4))
+            if ((fpinState[pathX[i - 1], pathY[i - 1]] == 3 && fpinState[pathX[i], pathY[i]] == 3) ||
+                (fpinState[pathX[i - 1], pathY[i - 1]] == 4 && fpinState[pathX[i], pathY[i]] == 3) ||
+                (fpinState[pathX[i - 1], pathY[i - 1]] == 3 && fpinState[pathX[i], pathY[i]] == 4))
             { lineImage.sprite = pinSprites2[0]; }
             else
             { lineImage.sprite = pinSprites1[0]; }
@@ -405,6 +435,9 @@ public class PinMark : MonoBehaviour
                     }
                 }
             }
+            fDir = fcameraDir;
+            string fcamString = string.Join(", ", fcameraDir);
+            Debug.Log("가짜 카메라방향 : " + fcamString);
 
             int[] fdirChange = new int[fcameraDir.Length - 1];
             for (int i = 0; i < fdirChange.Length; i++)
@@ -620,12 +653,12 @@ public class PinMark : MonoBehaviour
                         {
                             if (deltax <= 0.15f)
                             {
-                                pinState[x, y] = (pinState[x, y] == 2) ? 4 : 3;
+                                fpinState[x, y] = (fpinState[x, y] == 2) ? 4 : 3;
                             }
                             else
                             {
-                                pinState[x, y] = (pinState[x, y] == 2) ? 4 : 3;
-                                pinState[x + 1, y] = (pinState[x + 1, y] == 2) ? 4 : 3;
+                                fpinState[x, y] = (fpinState[x, y] == 2) ? 4 : 3;
+                                fpinState[x + 1, y] = (fpinState[x + 1, y] == 2) ? 4 : 3;
                                 mkDir.Rotate(0, 0, RotateDir((pathDir[x, y] == 0) ? x : x + 1, y));
                             }
                         }
@@ -633,12 +666,12 @@ public class PinMark : MonoBehaviour
                         {
                             if (deltax >= -0.15f)
                             {
-                                pinState[x, y] = (pinState[x, y] == 2) ? 4 : 3;
+                                fpinState[x, y] = (fpinState[x, y] == 2) ? 4 : 3;
                             }
                             else
                             {
-                                pinState[x, y] = (pinState[x, y] == 2) ? 4 : 3;
-                                pinState[x - 1, y] = (pinState[x - 1, y] == 2) ? 4 : 3;
+                                fpinState[x, y] = (fpinState[x, y] == 2) ? 4 : 3;
+                                fpinState[x - 1, y] = (fpinState[x - 1, y] == 2) ? 4 : 3;
                                 mkDir.Rotate(0, 0, RotateDir((pathDir[x, y] == 1) ? x : x - 1, y));
                             }
                         }
@@ -650,12 +683,12 @@ public class PinMark : MonoBehaviour
                         {
                             if (deltay <= 0.15f)
                             {
-                                pinState[x, y] = (pinState[x, y] == 2) ? 4 : 3;
+                                fpinState[x, y] = (fpinState[x, y] == 2) ? 4 : 3;
                             }
                             else
                             {
-                                pinState[x, y] = (pinState[x, y] == 2) ? 4 : 3;
-                                pinState[x, y + 1] = (pinState[x, y + 1] == 2) ? 4 : 3;
+                                fpinState[x, y] = (fpinState[x, y] == 2) ? 4 : 3;
+                                fpinState[x, y + 1] = (fpinState[x, y + 1] == 2) ? 4 : 3;
                                 mkDir.Rotate(0, 0, RotateDir(x, (pathDir[x, y] == 3) ? y : y + 1));
                             }
                         }
@@ -663,12 +696,12 @@ public class PinMark : MonoBehaviour
                         {
                             if (deltay >= -0.15f)
                             {
-                                pinState[x, y] = (pinState[x, y] == 2) ? 4 : 3;
+                                fpinState[x, y] = (fpinState[x, y] == 2) ? 4 : 3;
                             }
                             else
                             {
-                                pinState[x, y] = (pinState[x, y] == 2) ? 4 : 3;
-                                pinState[x, y - 1] = (pinState[x, y - 1] == 2) ? 4 : 3;
+                                fpinState[x, y] = (fpinState[x, y] == 2) ? 4 : 3;
+                                fpinState[x, y - 1] = (fpinState[x, y - 1] == 2) ? 4 : 3;
                                 mkDir.Rotate(0, 0, RotateDir(x, (pathDir[x, y] == 2) ? y : y - 1));
                             }
                         }
