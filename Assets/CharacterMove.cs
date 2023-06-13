@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -51,7 +52,6 @@ public class CharacterMove : MonoBehaviour
         Transform pt = GameObject.Find("Player").transform;
         bool routeTime = mapMove.eventTime[2];
         bool modifyTime = mapMove.eventTime[3];
-        bool o = false;
 
         LoopBuildings loopie = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
         float f = loopie.preSum;
@@ -75,7 +75,15 @@ public class CharacterMove : MonoBehaviour
                     rd.flipX = true;
                 }
             }
+
+            bool o = false;
+            bool w = false;
             newPos = pt.position.x;
+
+            if (!routeTime && !o && w) { o = true; w = false; }
+            if (o) { pt.position = new Vector3(newPos, pt.position.y, pt.position.z); }
+            if (routeTime) { w = true; }
+            
         }
         /*else
         {

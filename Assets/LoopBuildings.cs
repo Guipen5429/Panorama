@@ -43,7 +43,6 @@ public class LoopBuildings : MonoBehaviour
     {
         MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
         bool mapTime = mapMove.eventTime[0];
-        bool pinTime = mapMove.eventTime[1];
         bool routeTime = mapMove.eventTime[2];
         bool modifyTime = mapMove.eventTime[3];
 

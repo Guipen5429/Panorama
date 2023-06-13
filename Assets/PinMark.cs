@@ -256,7 +256,6 @@ public class PinMark : MonoBehaviour
         int[] route = loopBuildings.route;
         float[] left = loopBuildings.leftIns;
         float[] right = loopBuildings.rightIns;
-        int[] iDir = loopBuildings.cameraDir;
         int[] fcameraDir;
         float mSum = 0;
         float rPos = playerPos.position.x;
