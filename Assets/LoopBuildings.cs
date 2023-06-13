@@ -34,8 +34,9 @@ public class LoopBuildings : MonoBehaviour
     void Start()
     {
         map = new int[,] { { 6, 4, 4, 7 }, { 3, 1, 1, 5 }, { 3, 1, 1, 5 }, { 2, 2, 2, 8 } };
-        leftIns = new float[] { 16.5f, 11.7f, 18.3f, 6.6f, 9.9f, 10.4f, 9.9f, 1.8f, 6.6f, 6.6f, 0.9f, 16.5f, 7.5f };
+        leftIns = new float[] { 16.5f, 11.7f, 18.3f, 6.6f, 9.9f, 3.8f, 9.9f, 1.8f, 6.6f, 6.6f, 0.9f, 16.5f, 7.5f };
         rightIns = new float[] { 16.5f, 11.9f, 18.5f, 9.9f, 6.6f, 9.9f, 10.4f, 2.0f, 6.6f, 0.9f, 6.6f, 7.5f, 16.5f };
+        buildTime = true;
     }
 
     void Update()
@@ -46,27 +47,10 @@ public class LoopBuildings : MonoBehaviour
         bool routeTime = mapMove.eventTime[2];
         bool modifyTime = mapMove.eventTime[3];
 
-        if (mapTime && !routeTime)
-        {
-            if (!o && w)
-            {
-                o = true;
-                w = false;
-            }
-        }
-        if (o)
-        {
-            buildTime = true;
-            o = false;
-        }
+        if (mapTime && !routeTime && !o && w) { o = true; w = false; }
+        if (o) { buildTime = true; o = false; }
         if (routeTime) { w = true; }
 
-        if (modifyTime)
-        {
-            //path, dirChange, route
-            CreateRoute();
-        }
-        
         if (buildTime)
         {
             Transform inses = GameObject.Find("Inses").transform;
@@ -102,7 +86,7 @@ public class LoopBuildings : MonoBehaviour
         {
             if (i == 0) //경로 시작
             {
-                sum -= (route[0] == 0) ? 0 : rightIns[route[i]];
+                sum -= (route[0] == 0 || route[0] == 10 || route[0] == 12) ? 0 : rightIns[route[i]];
                 initial = sum - leftIns[route[i]];
                 leftWall.position = new Vector3(initial + 3.4f, 0); //왼쪽 벽
                 iCamera.position = new Vector3(initial + 19.7f, 0, -30); //초기 카메라 위치
@@ -122,6 +106,7 @@ public class LoopBuildings : MonoBehaviour
             {
                 rightWall.position = new Vector3(sum - 3.4f, 0); //오른쪽 벽
                 preSum = sum;
+                Debug.Log(preSum);
             }
         }
     }
@@ -129,8 +114,8 @@ public class LoopBuildings : MonoBehaviour
     void CreateRoute()
     {
         PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-        int[] x = pinMark.pathX;
-        int[] y = pinMark.pathY;
+        int[] x = pinMark.ipathX;
+        int[] y = pinMark.ipathY;
         int[] path = new int[x.Length];
         cameraDir = new int[x.Length + 1];
 

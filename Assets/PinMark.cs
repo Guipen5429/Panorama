@@ -19,10 +19,10 @@ public class PinMark : MonoBehaviour
 {
     public int[,] pinState = new int[4, 4]; //핀의 상태
     public int[,] fpinState = new int[4, 4]; //핀의 상태
+    public int[] ipathX;
+    public int[] ipathY;
     public int[] pathX;
     public int[] pathY;
-    public int[] fpathX;
-    public int[] fpathY;
     public bool pinsDone;
     public bool w;
     public int[,] pathDir = new int[4, 4];
@@ -32,8 +32,8 @@ public class PinMark : MonoBehaviour
 
     private void Awake()
     {
-        pathX = new int[] { 3, 3, 3, 3 };
-        pathY = new int[] { 0, 1, 2, 3 };
+        ipathX = new int[] { 3, 3, 3, 3 };
+        ipathY = new int[] { 3, 2, 1, 0 };
         pinsDone = true;
         w = false;
     }
@@ -56,42 +56,17 @@ public class PinMark : MonoBehaviour
         LoopBuildings loopBuildings = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
         int[] iDir = loopBuildings.cameraDir;
 
-        for (int i = 0; i < pathX.Length; i++)
+        if(!mapTime)
         {
-            if (pinState[pathX[i], pathY[i]] == 0 || pinState[pathX[i], pathY[i]] == 1)
-            { pinState[pathX[i], pathY[i]] = 1; }
-            if (i == 0 || i == pathX.Length - 1)
-            {
-                /*if (pathX[i] != 0 && pinState[pathX[i] - 1, pathY[i]] != 1) { pinState[pathX[i] - 1, pathY[i]] = 2; }
-                if (pathY[i] != 0 && pinState[pathX[i], pathY[i] - 1] != 1) { pinState[pathX[i], pathY[i] - 1] = 2; }
-                if (pathX[i] != 3 && pinState[pathX[i] + 1, pathY[0]] != 1) { pinState[pathX[i] + 1, pathY[i]] = 2; }
-                if (pathY[i] != 3 && pinState[pathX[i], pathY[i] + 1] != 1) { pinState[pathX[i], pathY[i] + 1] = 2; }*/
-            }
-
-            pathDir[pathX[i], pathY[i]] = iDir[i + 1];
+            pathX = ipathX;
+            pathY = ipathY;
         }
 
-        count = 0;
-        for (int i = 0; i < pathX.Length; i++)
+        if(!routeTime && w)
         {
-            if (pinState[pathX[i], pathY[i]] == 3 || pinState[pathX[i], pathY[i]] == 4)
-            {
-                count++;
-            }
+            ipathX = pathX;
+            ipathY = pathY;
         }
-
-        if (!modifyTime)
-        {
-            try
-            {
-                MarkAct markAct = GameObject.Find("PlayerMark").GetComponent<MarkAct>();
-                pathX = markAct.x;
-                pathY = markAct.y;
-            }
-            catch { }
-        }
-
-
 
         if (pinTime) { pinsDone = false; w = true; }
         if (mapTime && !pinsDone) //무한 복제 방지
@@ -107,7 +82,28 @@ public class PinMark : MonoBehaviour
                 GameObject.Destroy(childTransform.gameObject);
             }
 
-            FakeState();
+            for (int i = 0; i < pathX.Length; i++)
+            {
+                if (fpinState[pathX[i], pathY[i]] == 0 || fpinState[pathX[i], pathY[i]] == 1)
+                { fpinState[pathX[i], pathY[i]] = 1; }
+                if (i == 0 || i == pathX.Length - 1)
+                {
+                    /*if (pathX[i] != 0 && pinState[pathX[i] - 1, pathY[i]] != 1) { pinState[pathX[i] - 1, pathY[i]] = 2; }
+                    if (pathY[i] != 0 && pinState[pathX[i], pathY[i] - 1] != 1) { pinState[pathX[i], pathY[i] - 1] = 2; }
+                    if (pathX[i] != 3 && pinState[pathX[i] + 1, pathY[0]] != 1) { pinState[pathX[i] + 1, pathY[i]] = 2; }
+                    if (pathY[i] != 3 && pinState[pathX[i], pathY[i] + 1] != 1) { pinState[pathX[i], pathY[i] + 1] = 2; }*/
+                }
+                pathDir[pathX[i], pathY[i]] = iDir[i + 1];
+            }
+
+            count = 0;
+            for (int i = 0; i < pathX.Length; i++)
+            {
+                if (fpinState[pathX[i], pathY[i]] == 3 || fpinState[pathX[i], pathY[i]] == 4)
+                {
+                    count++;
+                }
+            }
 
             CreatePins();
             if (!routeTime || count != 1)
@@ -118,27 +114,6 @@ public class PinMark : MonoBehaviour
             pinsDone = true;
         }
         if (!pinTime) { w = false; }
-    }
-
-    public void FakeState()
-    {
-        try
-        {
-            MarkAct markAct = GameObject.Find("PlayerMark").GetComponent<MarkAct>();
-            fpathX = markAct.x;
-            fpathY = markAct.y;
-            MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-            bool routeTime = mapMove.eventTime[2];
-
-            for (int i = 0; i < fpathX.Length; i++)
-            {
-                if (fpinState[pathX[i], pathY[i]] == 0 || fpinState[pathX[i], pathY[i]] == 1)
-                { fpinState[pathX[i], pathY[i]] = 1; }
-
-                pathDir[pathX[i], pathY[i]] = fDir[i + 1];
-            }
-        }
-        catch { fpinState = pinState; }
     }
 
     public void CreatePins()
@@ -286,18 +261,17 @@ public class PinMark : MonoBehaviour
         float mSum = 0;
         float rPos = playerPos.position.x;
 
-        MarkAct markAct = GameObject.Find("PlayerMark").GetComponent<MarkAct>();
-        int[] fpathX = markAct.x;
-        int[] fpathY = markAct.y;
-        float markX = (modifyTime) ? (fpathY[0] - 1.5f) * 3.8f : (pathY[0] - 1.5f) * 3.8f;
-        float markY = (modifyTime) ? (1.5f - fpathX[0]) * 3.8f : (1.5f - pathX[0]) * 3.8f;
+        float markX = (pathY[0] - 1.5f) * 3.8f;
+        float markY = (1.5f - pathX[0]) * 3.8f;
         Debug.Log($"마크 초기위치 : {markX}, {markY}");
         float lastCorner = 0;
-        float fPos = fakePos(rPos);
 
         //페이크
+        int[] froute = new int[1];
+        fakeDir();
+        float fPos = fakePos(rPos);
         float Pos = (modifyTime) ? fPos : rPos;
-        int markDir = (modifyTime) ? fcameraDir[0] : iDir[0];
+        int markDir = fcameraDir[0];
 
         //위치 변환
         for (int i = 1; i < route.Length; i++)
@@ -328,7 +302,7 @@ public class PinMark : MonoBehaviour
                             else
                             {
                                 MarkPos.position = new Vector3(markX, markY, -2);
-                                MoveMark(15f, markDir);
+                                MoveMark(7.5f, markDir);
                             }
                             break;
                         }
@@ -405,33 +379,33 @@ public class PinMark : MonoBehaviour
             }
         }
 
-        float fakePos(float p)
+        void fakeDir()
         {
-            fcameraDir = new int[fpathX.Length + 1];
-            int[] fpath = new int[fpathX.Length]; ;
+            fcameraDir = new int[pathX.Length + 1];
+            int[] fpath = new int[pathX.Length]; ;
             int[,] map = loopBuildings.map;
 
-            for (int i = 0; i < fpathX.Length; i++)
+            for (int i = 0; i < pathX.Length; i++)
             {
-                fpath[i] = map[fpathX[i], fpathY[i]];
+                fpath[i] = map[pathX[i], pathY[i]];
             }
 
-            for (int i = 0; i < fpathX.Length; i++)
+            for (int i = 0; i < pathX.Length; i++)
             {
-                if (i == fpathX.Length - 1)
+                if (i == pathX.Length - 1)
                 {
                     fcameraDir[0] = fcameraDir[1];
                     fcameraDir[i + 1] = fcameraDir[i];
                 }
                 else
                 {
-                    if (fpathX[i] != fpathX[i + 1])
+                    if (pathX[i] != pathX[i + 1])
                     {
-                        fcameraDir[i + 1] = (fpathX[i] - fpathX[i + 1] == 1) ? 1 : 0;
+                        fcameraDir[i + 1] = (pathX[i] - pathX[i + 1] == 1) ? 1 : 0;
                     }
-                    else if (fpathY[i] != fpathY[i + 1])
+                    else if (pathY[i] != pathY[i + 1])
                     {
-                        fcameraDir[i + 1] = (fpathY[i] - fpathY[i + 1] == 1) ? 2 : 3;
+                        fcameraDir[i + 1] = (pathY[i] - pathY[i + 1] == 1) ? 2 : 3;
                     }
                 }
             }
@@ -444,17 +418,23 @@ public class PinMark : MonoBehaviour
             {
                 switch (fpath[i])
                 {
-                    case 1:case 2:case 6:
+                    case 1:
+                    case 2:
+                    case 6:
                         {
                             fdirChange[i] = TransDir(fcameraDir[i], 0) * 4 + TransDir(fcameraDir[i + 1], 0);
                             break;
                         }
-                    case 3:case 4:case 5:
+                    case 3:
+                    case 4:
+                    case 5:
                         {
                             fdirChange[i] = TransDir(fcameraDir[i], 6 - fpath[i]) * 4 + TransDir(fcameraDir[i + 1], 6 - fpath[i]);
                             break;
                         }
-                    case 7:case 8:case 9:
+                    case 7:
+                    case 8:
+                    case 9:
                         {
                             fdirChange[i] = TransDir(fcameraDir[i], 10 - fpath[i]) * 4 + TransDir(fcameraDir[i + 1], 10 - fpath[i]);
                             break;
@@ -482,7 +462,6 @@ public class PinMark : MonoBehaviour
             int q = 0;
             int pp = 0;
             int dir = 0;
-            int[] froute = new int[1];
             while (q < fpath.Length)
             {
                 switch (fpath[q])
@@ -490,15 +469,22 @@ public class PinMark : MonoBehaviour
                     case 1:
                         switch (fdirChange[dir])
                         {
-                            case 0: case 5: case 10:case 15: RouteFrame(4, 3); break;
-                            case 2: case 7: case 9: case 12:
+                            case 0: case 5: case 10: case 15: RouteFrame(4, 3); break;
+                            case 2:
+                            case 7:
+                            case 9:
+                            case 12:
                                 RouteTemp(pp++, 4);
                                 RouteTemp(pp++, 7);
                                 RouteTemp(pp++, 3);
                                 break;
                             case 3: case 6: case 8: case 13: RouteTemp(pp++, 1); break;
                         }
-                        break; case 2: case 3: case 4: case 5:
+                        break;
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
                         switch (fdirChange[dir])
                         {
                             case 0: RouteFrame(4, 9); break;
@@ -510,7 +496,10 @@ public class PinMark : MonoBehaviour
                             case 10: RouteTemp(pp++, 0); break;
                         }
                         break;
-                    case 6: case 7: case 8: case 9:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 9:
                         switch (fdirChange[dir])
                         {
                             case 0: RouteFrame(10, 3); break;
@@ -544,6 +533,11 @@ public class PinMark : MonoBehaviour
                 froute[--pp] = b;
             }
 
+
+        }
+
+        float fakePos(float p)
+        {
             int blocks = froute.Length;
             float fsum = 0;
             for (int i = 0; i < blocks; i++)
@@ -563,6 +557,7 @@ public class PinMark : MonoBehaviour
             Debug.Log($"가짜 루트 : {routeString}");
             return fsum - p;
         }
+
 
         void MoveMark(float l, int d)
         {

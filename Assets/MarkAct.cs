@@ -7,32 +7,20 @@ public class MarkAct : MonoBehaviour
 {
     public int[] x;
     public int[] y;
-    public bool modifyDone = true;
+    public bool modifyDone;
 
     private void Start()
     {
-        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-        x = (int[])pinMark.pathX.Clone();
-        y = (int[])pinMark.pathY.Clone();
+
     }
 
     void Update()
     {
-        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-        bool w = pinMark.w;
-        LoopBuildings loopie = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
-        bool buildTime = loopie.buildTime;
         MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        bool pinTime = mapMove.eventTime[1];
-        bool routeTime = mapMove.eventTime[2];
-
-        if (w)
-        { modifyDone = true; }
-
-        if (!routeTime)
+        bool mapTime = mapMove.eventTime[0];
+        if (!mapTime)
         {
-            x = (int[])pinMark.pathX.Clone();
-            y = (int[])pinMark.pathY.Clone();
+            modifyDone = true;
         }
     }
 
@@ -43,19 +31,20 @@ public class MarkAct : MonoBehaviour
         bool pinTime = mapMove.eventTime[1];
         bool routeTime = mapMove.eventTime[2];
         bool modifyTime = mapMove.eventTime[3];
+        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
 
         if (routeTime)
         {
-            int[] tempx = new int[x.Length];
-            int[] tempy = new int[y.Length];
+            x = (int[])pinMark.pathX;
+            y = (int[])pinMark.pathY;
 
-            for (int i = 0; i < x.Length; i++)
+            /*for (int i = 0; i < x.Length; i++)
             { tempx[x.Length - 1 - i] = x[i]; }
             for (int i = 0; i < y.Length; i++)
-            { tempy[y.Length - 1 - i] = y[i]; }
+            { tempy[y.Length - 1 - i] = y[i]; }*/
 
-            x = tempx;
-            y = tempy;
+            Array.Reverse(x);
+            Array.Reverse(y);
 
             modifyDone = false;
         }
