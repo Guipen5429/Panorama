@@ -23,14 +23,10 @@ public class CameraMove : MonoBehaviour
         }
 
         MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        bool mapTime = mapMove.eventTime[0];
-        bool routeTime = mapMove.eventTime[2];
+        int evnt0 = mapMove.eventTime[0];
+        int evnt1 = mapMove.eventTime[1];
+        int evnt2 = mapMove.eventTime[2];
 
-        bool o = false;
-        bool w = false;
-
-        if (!routeTime && !o && w) { o = true; w = false; }
-        if (o) { transform.position = new Vector3(track.position.x, transform.position.y, transform.position.z); }
-        if (routeTime) { w = true; }
+        if (evnt0 == 0) { transform.position = new Vector3(track.position.x, transform.position.y, transform.position.z); }
     }
 }

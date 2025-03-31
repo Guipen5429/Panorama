@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,9 +11,16 @@ public class RouteMake : MonoBehaviour
     SpriteRenderer pinImage;
     GameObject veil;
 
+    public bool callR;
+    public bool rcv;
+    public bool rcv2;
+
     void Start()
     {
         pinImage = GetComponent<SpriteRenderer>();
+        callR = false;
+        rcv = false;
+        rcv2 = true;
     }
 
     private void OnDisable()
@@ -51,12 +59,26 @@ public class RouteMake : MonoBehaviour
 
     private void Update()
     {
+        PinMark pin = GameObject.Find("Map").GetComponent<PinMark>();
+        bool pCall = pin.callP;
+        LoopBuildings build = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
+        bool bCall = build.callB;
         MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        bool mapTime = mapMove.eventTime[0];
-        bool pinTime = mapMove.eventTime[1];
-        bool routeTime = mapMove.eventTime[2];
+        int evnt0 = mapMove.eventTime[0];
+        int evnt1 = mapMove.eventTime[1];
+        int evnt2 = mapMove.eventTime[2];
+        bool go = mapMove.go;
+        if (evnt0 != 7) { rcv = false; rcv2 = true; callR = false; } //default
+        if (evnt0 == 7 && rcv2) { rcv = true; }
 
-        if (Input.GetKeyDown(KeyCode.A))
+        if (evnt0 == 7 && !callR && go && rcv)
+        {
+            callR = true;
+            rcv = false;
+            rcv2 = false;
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
         {
             Sprite[] pinSprites1 = Resources.LoadAll<Sprite>("Prefabs/Pins");
             Sprite[] pinSprites2 = Resources.LoadAll<Sprite>("Prefabs/Pins2");

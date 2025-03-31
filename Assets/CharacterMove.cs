@@ -47,17 +47,17 @@ public class CharacterMove : MonoBehaviour
         anim.SetBool("IsSlay", com[3]);
         dir = Input.GetAxisRaw("Horizontal"); //방향 지정
 
-        bool m = GameObject.Find("Map").GetComponent<MapEvent>().eventTime[0];
         MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
         Transform pt = GameObject.Find("Player").transform;
-        bool routeTime = mapMove.eventTime[2];
-        bool modifyTime = mapMove.eventTime[3];
+        int evnt0 = mapMove.eventTime[0];
+        int evnt1 = mapMove.eventTime[1];
+        int evnt2 = mapMove.eventTime[2];
 
         LoopBuildings loopie = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
         float f = loopie.preSum;
         float newPos = 0;
 
-        if (!m)
+        if (evnt0 == 0)
         {
             Commander();
 
@@ -76,32 +76,11 @@ public class CharacterMove : MonoBehaviour
                 }
             }
 
-            bool o = false;
-            bool w = false;
             newPos = pt.position.x;
 
-            if (!routeTime && !o && w) { o = true; w = false; }
-            if (o) { pt.position = new Vector3(newPos, pt.position.y, pt.position.z); }
-            if (routeTime) { w = true; }
+            if (evnt0 == 0) { pt.position = new Vector3(newPos, pt.position.y, pt.position.z); }
             
         }
-        /*else
-        {
-            if (routeTime || !modifyTime)
-            {
-                o = true;
-                if (modifyTime) { newPos = f - pt.position.x; }
-            }
-            else
-            {
-                if (o)
-                {
-                    pt.position = new Vector3(newPos, -7.8f);
-                    Debug.Log("이동!");
-                    o = false;
-                }
-            }
-        }*/
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -114,10 +93,10 @@ public class CharacterMove : MonoBehaviour
 
     void Commander()
     {
-        com[0] = (Math.Abs(Input.GetAxis("Horizontal")) != 0 && !(Input.GetKey(KeyCode.Z))) ? true : false;
-        com[1] = (Input.GetKey(KeyCode.Z) && !(Input.GetKey(KeyCode.C))) ? true : false;
+        com[0] = (Math.Abs(Input.GetAxis("Horizontal")) != 0 && !(Input.GetKey(KeyCode.Space))) ? true : false;
+        com[1] = (Input.GetKey(KeyCode.Space) && !(Input.GetKey(KeyCode.C))) ? true : false;
         com[3] = (Input.GetKeyDown(KeyCode.X)) ? true : false;
-        com[2] = (Input.GetKeyDown(KeyCode.C) && !(Input.GetKey(KeyCode.Z))) ? true : false;
+        com[2] = (Input.GetKeyDown(KeyCode.C) && !(Input.GetKey(KeyCode.Space))) ? true : false;
     }
     void Move()
     {

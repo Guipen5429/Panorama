@@ -1,16 +1,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Threading;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 public class LoopBuildings : MonoBehaviour
 {
-    public int[] route = { 0 }; //경로 배열
+    public int[] route = { 0 }; //경로 배열, 5칸에서 늘릴려면 x와 t좌표의 끝(맵의 한계)를 지정하고 만들어야
     public GameObject[] prefab; //프리팹 번호 지정
-    public float sum = 0; //길이
+    public float sum = 0; //시작 지점으로부터의 길이
     public float initial = 0;
 
     Transform leftWall;
@@ -21,36 +23,41 @@ public class LoopBuildings : MonoBehaviour
     public float[] leftIns;
     public float[] rightIns;
 
-    public int[] cameraDir;
-    //East = 0, West = 1, South = 2, North = 3
+    public int[] cameraDir; //East = 0, West = 1, South = 2, North = 3
     public int[] dirChange;
 
-    public bool buildTime = true;
-    bool o = false;
-    bool w = false;
+    public bool callB;
+    public bool rcv;
+    public bool rcv2;
 
     public float preSum = 0;
 
     void Start()
     {
-        map = new int[,] { { 6, 4, 4, 7 }, { 3, 1, 1, 5 }, { 3, 1, 1, 5 }, { 2, 2, 2, 8 } };
-        leftIns = new float[] { 16.5f, 11.7f, 18.3f, 6.6f, 9.9f, 3.8f, 9.9f, 1.8f, 6.6f, 6.6f, 0.9f, 16.5f, 7.5f };
-        rightIns = new float[] { 16.5f, 11.9f, 18.5f, 9.9f, 6.6f, 9.9f, 10.4f, 2.0f, 6.6f, 0.9f, 6.6f, 7.5f, 16.5f };
-        buildTime = true;
+        map = new int[,] { { 6, 4, 4, 4, 7 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 9, 2, 2, 2, 8 } }; //지형 정보 (0~9)
+        leftIns = new float[] { 16.5f, 11.7f, 18.3f, 6.6f, 9.9f, 3.8f, 9.9f, 1.8f, 6.6f, 6.6f, 0.9f, 16.5f, 7.5f }; //왼쪽 거리
+        rightIns = new float[] { 16.5f, 11.9f, 18.5f, 9.9f, 6.6f, 9.9f, 10.4f, 2.0f, 6.6f, 0.9f, 6.6f, 7.5f, 16.5f }; //오른쪽 거리
+        callB = false;
+        rcv = false;
+        rcv2 = true;
     }
 
     void Update()
     {
+        RouteMake route = GameObject.Find("Map").GetComponent<RouteMake>();
+        bool rCall = route.callR;
+        PinMark pin = GameObject.Find("Map").GetComponent<PinMark>();
+        bool pCall = pin.callP;
         MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        bool mapTime = mapMove.eventTime[0];
-        bool routeTime = mapMove.eventTime[2];
-        bool modifyTime = mapMove.eventTime[3];
+        int evnt0 = mapMove.eventTime[0];
+        int evnt1 = mapMove.eventTime[1];
+        int evnt2 = mapMove.eventTime[2];
+        bool go = mapMove.go;
 
-        if (mapTime && !routeTime && !o && w) { o = true; w = false; }
-        if (o) { buildTime = true; o = false; }
-        if (routeTime) { w = true; }
+        if (evnt0 != 9) { rcv = false; rcv2 = true; callB = false; } //default
+        if (evnt0 == 9 && rcv2) { rcv = true; }
 
-        if (buildTime)
+        if (evnt0 == 9 && !callB && go && rcv)
         {
             Transform inses = GameObject.Find("Inses").transform;
             foreach (Transform childTransform in inses)
@@ -67,7 +74,10 @@ public class LoopBuildings : MonoBehaviour
 
             //배경 복제
             FrameRoute();
-            buildTime = false;
+
+            callB = true;
+            rcv = false;
+            rcv2 = false;
         }
     }
 
