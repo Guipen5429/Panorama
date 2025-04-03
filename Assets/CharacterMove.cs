@@ -51,10 +51,9 @@ public class CharacterMove : MonoBehaviour
         Transform pt = GameObject.Find("Player").transform;
         int evnt0 = mapMove.eventTime[0];
         int evnt1 = mapMove.eventTime[1];
-        int evnt2 = mapMove.eventTime[2];
 
         LoopBuildings loopie = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
-        float f = loopie.preSum;
+        float f = loopie.sum;
         float newPos = 0;
 
         if (evnt0 == 0)
@@ -78,7 +77,7 @@ public class CharacterMove : MonoBehaviour
 
             newPos = pt.position.x;
 
-            if (evnt0 == 0) { pt.position = new Vector3(newPos, pt.position.y, pt.position.z); }
+            pt.position = new Vector3(newPos, pt.position.y, pt.position.z);
             
         }
     }
@@ -95,8 +94,8 @@ public class CharacterMove : MonoBehaviour
     {
         com[0] = (Math.Abs(Input.GetAxis("Horizontal")) != 0 && !(Input.GetKey(KeyCode.Space))) ? true : false;
         com[1] = (Input.GetKey(KeyCode.Space) && !(Input.GetKey(KeyCode.C))) ? true : false;
-        com[3] = (Input.GetKeyDown(KeyCode.X)) ? true : false;
-        com[2] = (Input.GetKeyDown(KeyCode.C) && !(Input.GetKey(KeyCode.Space))) ? true : false;
+        com[2] = Input.GetKey(KeyCode.LeftShift) && (Input.GetMouseButtonDown(0) && !(Input.GetKey(KeyCode.Space))) ? true : false;
+        com[3] = (!Input.GetKey(KeyCode.LeftShift) && Input.GetMouseButtonDown(0)) ? true : false;
     }
     void Move()
     {

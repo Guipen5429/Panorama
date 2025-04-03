@@ -3,14 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class LoopBuildings : MonoBehaviour
 {
-    public int[] route = { 0 }; //경로 배열, 5칸에서 늘릴려면 x와 t좌표의 끝(맵의 한계)를 지정하고 만들어야
+    public int[] route = { 0 }; //경로 배열, 5칸에서 늘릴려면 x와 t좌표의 끝(맵의 한계)를 지정하고 만들어야 함
     public GameObject[] prefab; //프리팹 번호 지정
     public float sum = 0; //시작 지점으로부터의 길이
     public float initial = 0;
@@ -24,19 +26,20 @@ public class LoopBuildings : MonoBehaviour
     public float[] rightIns;
 
     public int[] cameraDir; //East = 0, West = 1, South = 2, North = 3
-    public int[] dirChange;
+    public int[] routeDir; //방향을 부여한 지형 정보, 0 ~ 15
+    public int[] pathDir; //경로 지형 방향 변환, 0 ~ 15
+    public int[] path;
 
     public bool callB;
+    public int evntB;
     public bool rcv;
     public bool rcv2;
 
-    public float preSum = 0;
-
     void Start()
     {
-        map = new int[,] { { 6, 4, 4, 4, 7 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 9, 2, 2, 2, 8 } }; //지형 정보 (0~9)
-        leftIns = new float[] { 16.5f, 11.7f, 18.3f, 6.6f, 9.9f, 3.8f, 9.9f, 1.8f, 6.6f, 6.6f, 0.9f, 16.5f, 7.5f }; //왼쪽 거리
-        rightIns = new float[] { 16.5f, 11.9f, 18.5f, 9.9f, 6.6f, 9.9f, 10.4f, 2.0f, 6.6f, 0.9f, 6.6f, 7.5f, 16.5f }; //오른쪽 거리
+        map = new int[,] { { 6, 4, 4, 4, 7 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 8, 2, 2, 2, 9 } }; //지형 정보 (0~9)
+        leftIns = new float[] { 16.5f, 11.8f, 18.4f, 6.6f, 9.9f, 10.4f, 9.9f, 1.9f, 6.6f, 6.6f, -5.7f, 16.5f, 7.5f }; //왼쪽 거리
+        rightIns = new float[] { 16.5f, 11.8f, 18.4f, 9.9f, 6.6f, 9.9f, 10.4f, 1.9f, 6.6f, 0.9f, 0f, 7.5f, 16.5f }; //오른쪽 거리
         callB = false;
         rcv = false;
         rcv2 = true;
@@ -44,18 +47,31 @@ public class LoopBuildings : MonoBehaviour
 
     void Update()
     {
-        RouteMake route = GameObject.Find("Map").GetComponent<RouteMake>();
-        bool rCall = route.callR;
-        PinMark pin = GameObject.Find("Map").GetComponent<PinMark>();
-        bool pCall = pin.callP;
         MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
         int evnt0 = mapMove.eventTime[0];
         int evnt1 = mapMove.eventTime[1];
-        int evnt2 = mapMove.eventTime[2];
         bool go = mapMove.go;
 
-        if (evnt0 != 9) { rcv = false; rcv2 = true; callB = false; } //default
-        if (evnt0 == 9 && rcv2) { rcv = true; }
+        if (evnt0 == 0 || evnt0 == 5 || evnt0 == 9) { rcv = false; rcv2 = true; callB = false; } //default
+        if (evnt0 == 7 || evnt0 == 9 && rcv2) { rcv = true; }
+
+        if (evnt0 == 7 && !callB && go && rcv)
+        {
+            CreateRoute();
+
+            string routeString = string.Join(", ", route);
+            Debug.Log("최종배경 : " + routeString);
+
+            switch (evnt1)
+            {
+                case 0: evntB = 9; break;
+                case 1: evntB = 5; break;
+                default: break;
+            }
+            callB = true;
+            rcv = false;
+            rcv2 = false;
+        }
 
         if (evnt0 == 9 && !callB && go && rcv)
         {
@@ -66,69 +82,24 @@ public class LoopBuildings : MonoBehaviour
             }
             sum = 0;
 
-            //path, dirChange, route
-            CreateRoute();
-
-            string routeString = string.Join(", ", route);
-            Debug.Log("최종배경 : " + routeString);
-
             //배경 복제
             FrameRoute();
 
+            evntB = 0;
             callB = true;
             rcv = false;
             rcv2 = false;
         }
     }
-
-    void FrameRoute()
-    {
-        int blocks = route.Length;
-        leftWall = GameObject.Find("LeftWall").transform;
-        rightWall = GameObject.Find("RightWall").transform;
-        iCamera = GameObject.Find("Main Camera").transform;
-
-        Transform inses = GameObject.Find("Inses").transform;
-        GameObject[] buildings = new GameObject[blocks];
-
-        for (int i = 0; i < blocks; i++)
-        {
-            if (i == 0) //경로 시작
-            {
-                sum -= (route[0] == 0 || route[0] == 10 || route[0] == 12) ? 0 : rightIns[route[i]];
-                initial = sum - leftIns[route[i]];
-                leftWall.position = new Vector3(initial + 3.4f, 0); //왼쪽 벽
-                iCamera.position = new Vector3(initial + 19.7f, 0, -30); //초기 카메라 위치
-            }
-            else
-            {
-                sum += leftIns[route[i]];
-            }
-
-            buildings[i] = Instantiate(prefab[route[i]], new Vector3(transform.position.x + sum,
-            transform.position.y, transform.position.z), Quaternion.identity, transform); //복제
-            buildings[i].transform.SetParent(inses, false);
-
-            sum += rightIns[route[i]];
-
-            if (i == blocks - 1) //경로 끝
-            {
-                rightWall.position = new Vector3(sum - 3.4f, 0); //오른쪽 벽
-                preSum = sum;
-                Debug.Log(preSum);
-            }
-        }
-    }
-
     void CreateRoute()
     {
         PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-        int[] x = pinMark.ipathX;
-        int[] y = pinMark.ipathY;
-        int[] path = new int[x.Length];
+        int[] x = pinMark.pathX;
+        int[] y = pinMark.pathY;
+        path = new int[x.Length]; //경로 지형 정보
         cameraDir = new int[x.Length + 1];
 
-        //path(경로) 생성
+        //경로 지형 정보 생성
         for (int i = 0; i < x.Length; i++)
         {
             path[i] = map[x[i], y[i]];
@@ -155,33 +126,39 @@ public class LoopBuildings : MonoBehaviour
             }
         }
         string camString = string.Join(", ", cameraDir);
-        /*Debug.Log("카메라방향 : " + camString);*/
 
-        //dirChange(방향변환) 생성
-        dirChange = new int[cameraDir.Length - 1];
-        for (int i = 0; i < dirChange.Length; i++)
+        //경로 지형 방향 변환 생성
+        pathDir = new int[cameraDir.Length - 1];
+        for (int i = 0; i < pathDir.Length; i++)
         {
             switch (path[i])
             {
-                case 1: case 2: case 6:
+                case 1: case 2: case 6: //기본형
                     {
-                        dirChange[i] = TransDir(cameraDir[i], 0) * 4 + TransDir(cameraDir[i + 1], 0);
+                        pathDir[i] = ClockWise(cameraDir[i], 0) * 4 + ClockWise(cameraDir[i + 1], 0);
                         break;
                     }
-                case 3: case 4: case 5:
+                case 3: case 4: case 5: //ㅓ자 변형
                     {
-                        dirChange[i] = TransDir(cameraDir[i], 6 - path[i]) * 4 + TransDir(cameraDir[i + 1], 6 - path[i]);
+                        pathDir[i] = ClockWise(cameraDir[i], 6 - path[i]) * 4 + ClockWise(cameraDir[i + 1], 6 - path[i]);
                         break;
                     }
-                case 7: case 8: case 9:
+                case 7: case 8: case 9: //ㄴ자 변형
                     {
-                        dirChange[i] = TransDir(cameraDir[i], 10 - path[i]) * 4 + TransDir(cameraDir[i + 1], 10 - path[i]);
+                        pathDir[i] = ClockWise(cameraDir[i], 10 - path[i]) * 4 + ClockWise(cameraDir[i + 1], 10 - path[i]);
                         break;
                     }
             }
         }
 
-        int TransDir(int i, int j)
+        //방향을 부여한 지형 정보
+        routeDir = new int[cameraDir.Length - 2];
+        for (int i = 1; i < cameraDir.Length - 1; i++)
+        {
+            routeDir[i - 1] = ClockWise(cameraDir[i], 1);
+        }
+
+        int ClockWise(int i, int j)
         {
             int k = 0;
             while (k < j)
@@ -198,7 +175,7 @@ public class LoopBuildings : MonoBehaviour
             return i;
         }
 
-        //route(경로배경) 생성
+        //배경 정보
         int p = 0;
         int pp = 0;
         int dir = 0;
@@ -208,10 +185,10 @@ public class LoopBuildings : MonoBehaviour
             switch (path[p])
             {
                 case 1:
-                    switch (dirChange[dir])
+                    switch (pathDir[dir])
                     {
                         case 0: case 5: case 10: case 15: RouteFrame(4, 3); break;
-                        case 2: case 7: case 9: case 12:
+                        case 2: case 7:  case 9: case 12:
                             RouteTemp(pp++, 4);
                             RouteTemp(pp++, 7);
                             RouteTemp(pp++, 3);
@@ -220,7 +197,7 @@ public class LoopBuildings : MonoBehaviour
                     }
                     break;
                 case 2: case 3: case 4: case 5:
-                    switch (dirChange[dir])
+                    switch (pathDir[dir])
                     {
                         case 0: RouteFrame(4, 9); break;
                         case 2: RouteFrame(4, 5); break;
@@ -232,7 +209,7 @@ public class LoopBuildings : MonoBehaviour
                     }
                     break;
                 case 6: case 7: case 8: case 9:
-                    switch (dirChange[dir])
+                    switch (pathDir[dir])
                     {
                         case 0: RouteFrame(10, 3); break;
                         case 10: RouteFrame(4, 9); break;
@@ -263,8 +240,43 @@ public class LoopBuildings : MonoBehaviour
                 route[i] = temp[i];
             }
             route[--pp] = b;
-            /*string routeString = string.Join(", ", route);
-            Debug.Log(routeString);*/
+        }
+    }
+
+    void FrameRoute() //배경 생성
+    {
+        int blocks = route.Length;
+        leftWall = GameObject.Find("LeftWall").transform;
+        rightWall = GameObject.Find("RightWall").transform;
+        iCamera = GameObject.Find("Main Camera").transform;
+
+        Transform inses = GameObject.Find("Inses").transform;
+        GameObject[] buildings = new GameObject[blocks];
+
+        for (int i = 0; i < blocks; i++)
+        {
+            if (i == 0) //경로 시작
+            {
+                sum -= (route[0] == 0 || route[0] == 12) ? 0 : rightIns[route[i]];
+                initial = (route[0] == 10) ? -7.5f : sum - leftIns[route[i]];
+                leftWall.position = new Vector3(initial + 3.4f, 0); //왼쪽 벽
+                iCamera.position = new Vector3(initial + 19.7f, 0, -30); //초기 카메라 위치
+            }
+            else
+            {
+                sum += leftIns[route[i]];
+            }
+
+            buildings[i] = Instantiate(prefab[route[i]], new Vector3(transform.position.x + sum,
+            transform.position.y, transform.position.z), Quaternion.identity, transform); //배경 복제
+            buildings[i].transform.SetParent(inses, false);
+
+            sum += rightIns[route[i]];
+
+            if (i == blocks - 1) //경로 끝
+            {
+                rightWall.position = new Vector3(sum - 3.4f, 0); //오른쪽 벽
+            }
         }
     }
 }
