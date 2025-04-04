@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8952848502718305670}
   - component: {fileID: 2604422221557079721}
-  - component: {fileID: -4417039362411735036}
   - component: {fileID: -5620153226909241139}
   m_Layer: 0
   m_Name: Pin
@@ -91,18 +90,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &-4417039362411735036
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4309515368102960383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 605d47b81737f2040b916fc9f8755a01, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!58 &-5620153226909241139
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -118,4 +105,4 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.52500004
+  m_Radius: 0.2

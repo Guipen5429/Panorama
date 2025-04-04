@@ -22,7 +22,7 @@ public class MapEvent : MonoBehaviour
     {
         mapBase = transform.Find("MapBase").gameObject;
         mapBase.SetActive(false);
-        eventTime = new int[]{ 7, 0 };
+        eventTime = new int[]{ 7, 0, 1 };
     }
 
     void Update()
@@ -36,6 +36,8 @@ public class MapEvent : MonoBehaviour
         LoopBuildings build = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
         bool bCall = build.callB;
         int evntB = build.evntB;
+        PathMake path = GameObject.Find("Map").GetComponent<PathMake>();
+        bool pinCall = path.pinCall;
 
         //카메라를 추적
         transform.position = new Vector3(track.position.x, 0, -1);
@@ -46,8 +48,8 @@ public class MapEvent : MonoBehaviour
             else { eventTime[0] = 5; eventTime[1] = 2; }
         }
 
-        if (!pCall && !rCall && !bCall) { go = true; rcv = false; rcv2 = true; } //default
-        if (pCall || rCall || bCall && rcv2) { rcv = true; go = false; }
+        if (!pCall && !rCall && !bCall && !pinCall) { go = true; rcv = false; rcv2 = true; } //default
+        if (pCall || rCall || bCall || pinCall && rcv2) { rcv = true; go = false; }
 
         if (rCall && rcv)
         {
@@ -55,6 +57,8 @@ public class MapEvent : MonoBehaviour
             {
                 case 3: eventTime[0] = 5; break;
                 case 6: eventTime[0] = 5; eventTime[1] = 0; break;
+                case 9: eventTime[0] = 9; break;
+                case 5: eventTime[0] = 5; break;
             }
             rcv = false;
             rcv2 = false;
@@ -66,10 +70,8 @@ public class MapEvent : MonoBehaviour
             {
                 case 2: eventTime[0] = 2; break;
                 case 3: eventTime[0] = 3; eventTime[1] = 1; break;
-                case 5: eventTime[0] = 5; break;
                 case 6: eventTime[0] = 6; break;
                 case 8: mapBase.SetActive(false); eventTime[0] = 9; break;
-                case 9: eventTime[0] = 9; break;
             }
             rcv = false;
             rcv2 = false;
@@ -79,10 +81,18 @@ public class MapEvent : MonoBehaviour
         {
             switch (evntB)
             {
-                case 0: eventTime[0] = 0; eventTime[1] = 0; break;
-                case 5: eventTime[0] = 5; break;
-                case 9: eventTime[0] = 9; break;
+                case 0: eventTime[0] = 0; eventTime[1] = 0; eventTime[2] = 0; break;
+                case 4: eventTime[0] = 4; break;
             }
+            rcv = false;
+            rcv2 = false;
+        }
+
+        if (pinCall & rcv)
+        {
+            //Debug.Log("핀 클릭");
+
+            eventTime[0] = 7; eventTime[2] = 1;
             rcv = false;
             rcv2 = false;
         }

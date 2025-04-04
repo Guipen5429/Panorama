@@ -16,6 +16,7 @@ public class LoopBuildings : MonoBehaviour
     public GameObject[] prefab; //프리팹 번호 지정
     public float sum = 0; //시작 지점으로부터의 길이
     public float initial = 0;
+    public float sub = 0;
 
     Transform leftWall;
     Transform rightWall;
@@ -24,6 +25,9 @@ public class LoopBuildings : MonoBehaviour
     public int[,] map;
     public float[] leftIns;
     public float[] rightIns;
+
+    int[] x;
+    int[] y;
 
     public int[] cameraDir; //East = 0, West = 1, South = 2, North = 3
     public int[] routeDir; //방향을 부여한 지형 정보, 0 ~ 15
@@ -37,7 +41,7 @@ public class LoopBuildings : MonoBehaviour
 
     void Start()
     {
-        map = new int[,] { { 6, 4, 4, 4, 7 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 8, 2, 2, 2, 9 } }; //지형 정보 (0~9)
+        map = new int[,] { { 6, 4, 4, 4, 7 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 9, 2, 2, 2, 8 } }; //지형 정보 (0~9)
         leftIns = new float[] { 16.5f, 11.8f, 18.4f, 6.6f, 9.9f, 10.4f, 9.9f, 1.9f, 6.6f, 6.6f, -5.7f, 16.5f, 7.5f }; //왼쪽 거리
         rightIns = new float[] { 16.5f, 11.8f, 18.4f, 9.9f, 6.6f, 9.9f, 10.4f, 1.9f, 6.6f, 0.9f, 0f, 7.5f, 16.5f }; //오른쪽 거리
         callB = false;
@@ -50,40 +54,44 @@ public class LoopBuildings : MonoBehaviour
         MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
         int evnt0 = mapMove.eventTime[0];
         int evnt1 = mapMove.eventTime[1];
+        int evnt2 = mapMove.eventTime[2];
         bool go = mapMove.go;
 
-        if (evnt0 == 0 || evnt0 == 5 || evnt0 == 9) { rcv = false; rcv2 = true; callB = false; } //default
+        if (evnt0 == 0 || evnt0 == 4) { rcv = false; rcv2 = true; callB = false; } //default
         if (evnt0 == 7 || evnt0 == 9 && rcv2) { rcv = true; }
 
+        //경로 바꾸기
         if (evnt0 == 7 && !callB && go && rcv)
         {
+            PathMake pathMake = GameObject.Find("Map").GetComponent<PathMake>();
+            x = pathMake.pathX;
+            y = pathMake.pathY;
             CreateRoute();
 
             string routeString = string.Join(", ", route);
-            Debug.Log("최종배경 : " + routeString);
+            //Debug.Log("최종배경 : " + routeString);
 
-            switch (evnt1)
-            {
-                case 0: evntB = 9; break;
-                case 1: evntB = 5; break;
-                default: break;
-            }
+            evntB = 4;
             callB = true;
             rcv = false;
             rcv2 = false;
         }
 
+        //배경 바꾸기
         if (evnt0 == 9 && !callB && go && rcv)
         {
-            Transform inses = GameObject.Find("Inses").transform;
-            foreach (Transform childTransform in inses)
+            if (evnt2 == 1)
             {
-                GameObject.Destroy(childTransform.gameObject);
-            }
-            sum = 0;
+                Transform inses = GameObject.Find("Inses").transform;
+                foreach (Transform childTransform in inses)
+                {
+                    GameObject.Destroy(childTransform.gameObject);
+                }
+                sum = 0;
 
-            //배경 복제
-            FrameRoute();
+                //배경 복제
+                FrameRoute();
+            }
 
             evntB = 0;
             callB = true;
@@ -93,9 +101,6 @@ public class LoopBuildings : MonoBehaviour
     }
     void CreateRoute()
     {
-        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-        int[] x = pinMark.pathX;
-        int[] y = pinMark.pathY;
         path = new int[x.Length]; //경로 지형 정보
         cameraDir = new int[x.Length + 1];
 
@@ -152,8 +157,8 @@ public class LoopBuildings : MonoBehaviour
         }
 
         //방향을 부여한 지형 정보
-        routeDir = new int[cameraDir.Length - 2];
-        for (int i = 1; i < cameraDir.Length - 1; i++)
+        routeDir = new int[cameraDir.Length - 1];
+        for (int i = 1; i < cameraDir.Length; i++)
         {
             routeDir[i - 1] = ClockWise(cameraDir[i], 1);
         }
@@ -212,10 +217,10 @@ public class LoopBuildings : MonoBehaviour
                     switch (pathDir[dir])
                     {
                         case 0: RouteFrame(10, 3); break;
-                        case 10: RouteFrame(4, 9); break;
                         case 5: RouteTemp(pp++, 11); break;
                         case 7: RouteTemp(pp++, 2); break;
                         case 8: RouteTemp(pp++, 1); break;
+                        case 10: RouteFrame(4, 9); break;
                         case 15: RouteTemp(pp++, 12); break;
                     }
 

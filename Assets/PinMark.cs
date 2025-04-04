@@ -20,33 +20,22 @@ using UnityEngine.UIElements;
 
 public class PinMark : MonoBehaviour
 {
-    public int[,] pinState = new int[5, 5]; //핀의 상태
-    public int[] pathX; //경로 x좌표
-    public int[] pathY; //경로 y좌표
-    public int[,] pathDir = new int[5, 5];
-    public bool rcv;
-    public bool rcv2;
-
-    public int count;
-    int[] fDir;
-
     public bool callP;
     public int evntP;
+    public bool rcv;
+    public bool rcv2;
+    int[] pathX;
+    int[] pathY;
+    int[] GStt;
 
-    private void Awake()
+    public GameObject[] pins;
+
+    void Start()
     {
-        pathX = new int[] { 0, 0, 1, 1, 2, 2, 3, 3 };
-        pathY = new int[] { 4, 3, 3, 4, 4, 3, 3, 4 };
         callP = false;
         evntP = 0;
         rcv = false;
         rcv2 = true;
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-
     }
 
     // Update is called once per frame
@@ -60,9 +49,14 @@ public class PinMark : MonoBehaviour
         if (evnt0 == 2 || evnt0 == 3 || evnt0 == 6 || evnt0 == 9) { rcv = false; rcv2 = true; callP = false; } //default
         if (evnt0 == 2 || evnt0 == 5 && rcv2) { rcv = true; }
 
-        if (evnt0 == 2 && !callP && go && rcv) //핀 상태, 핀, 선 생성
+        //핀, 선, 마크 생성
+        if (evnt0 == 2 && !callP && go && rcv) 
         {
-            ChngState();
+            PathMake pathMake = GameObject.Find("Map").GetComponent<PathMake>();
+            pathX = pathMake.pathX;
+            pathY = pathMake.pathY;
+            GStt = pathMake.GStt;
+
             CreatePins();
             CreateMark();
 
@@ -77,13 +71,14 @@ public class PinMark : MonoBehaviour
             rcv2 = false;
         }
 
-        if (evnt0 == 5 && !callP && go && rcv) //핀, 선, 마크 삭제
+        //핀, 선, 마크 삭제
+        if (evnt0 == 5 && !callP && go && rcv)
         {
             Transform gridPins = GameObject.Find("GridPins").transform;
             foreach (Transform childTransform in gridPins)
             {
                 GameObject.Destroy(childTransform.gameObject);
-            } //핀 삭제
+            } //핀, 마크 삭제
             Transform gridLines = GameObject.Find("GridLines").transform;
             foreach (Transform childTransform in gridLines)
             {
@@ -102,49 +97,16 @@ public class PinMark : MonoBehaviour
             rcv2 = false;
         }
     }
-    public void ChngState()
+
+    void CreatePins()
     {
-        LoopBuildings loopBuildings = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
-        int[] iDir = loopBuildings.cameraDir;
+        RouteMake routeMake = GameObject.Find("Map").GetComponent<RouteMake>();
+        int[,] pinState = routeMake.pinState;
+        int[,] pathDir = routeMake.pathDir;
 
-        for (int i = 0; i < 5; i++) //핀 상태 초기화
-        {
-            for (int j = 0; j < 5; j++)
-            {
-                pinState[i, j] = 0;
-            }
-        }
-
-        pinState[pathX[0], pathY[0]] = 2;
-        pinState[pathX[^1], pathY[^1]] = 3;
-
-        for (int i = 1; i < pathX.Length - 2; i++)
-        {
-            pinState[pathX[i], pathY[i]] = 1;
-        }
-
-        for (int i = 0; i < pathX.Length; i++) //경로 핀 방향 불러오기
-        {
-            if (pinState[pathX[i], pathY[i]] == 0 || pinState[pathX[i], pathY[i]] == 1)
-            { pinState[pathX[i], pathY[i]] = 1; }
-            pathDir[pathX[i], pathY[i]] = iDir[i + 1];
-        }
-
-        count = 0;
-        for (int i = 0; i < pathX.Length; i++)
-        {
-            if (pinState[pathX[i], pathY[i]] == 3 || pinState[pathX[i], pathY[i]] == 4)
-            {
-                count++;
-            }
-        }
-    }
-
-    public void CreatePins()
-    {
         Transform gridPins = GameObject.Find("GridPins").transform;
         GameObject[,] position = new GameObject[5, 5];
-        GameObject[] pins = new GameObject[26];
+        pins = new GameObject[26];
         GameObject pPrefab = Resources.Load<GameObject>("Prefabs/Pin");
         Sprite[] pinSprites = Resources.LoadAll<Sprite>("Prefabs/Pins");
         Sprite[] TileSprites = Resources.LoadAll<Sprite>("Prefabs/Maptiles");
@@ -171,47 +133,45 @@ public class PinMark : MonoBehaviour
 
             SpriteRenderer pinImage = pins[i].GetComponent<SpriteRenderer>(); //이미지 불러오기
             Transform pinDir = pins[i].GetComponent<Transform>();
+            pinDir.Rotate(0, 0, TransDir(pathDir[x, y])); //핀 방향 지정
 
-            //핀 이미지, 방향 지정
+            pins[i].AddComponent<PinAct>();
+
+            //핀 이미지
             if (evnt1 == 0)
             {
-                if (pinState[x, y] != 0)
+                switch (pinState[x, y])
                 {
-                    if (pinState[x, y] == 2 || pinState[x, y] == 3)
-                    {
-                        pinImage.sprite = pinSprites[3];
-                    }
-                    else { pinImage.sprite = pinSprites[4];}
-
-                    pinDir.Rotate(0, 0, TransDir());
+                    case 0: pinImage.sprite = pinSprites[0]; break;
+                    case 1: pinImage.sprite = pinSprites[1]; break;
+                    case 2: case 3: pinImage.sprite = pinSprites[3]; break;
+                    case 4: case 5: pinImage.sprite = pinSprites[0]; break;
+                    default: break;
                 }
-                else { pinImage.sprite = pinSprites[0]; }
             }
             else if (evnt1 == 1)
             {
-                if (pinState[x, y] != 0)
+                switch (pinState[x, y])
                 {
-                    if (pinState[x, y] == 2 || pinState[x, y] == 3)
-                    {
-                        pinImage.sprite = pinSprites[8];
-                    }
-                    else { pinImage.sprite = pinSprites[11]; }
-
-                    pinDir.Rotate(0, 0, TransDir());
+                    case 0: pinImage.sprite = pinSprites[0]; break;
+                    case 1: pinImage.sprite = pinSprites[6]; break;
+                    case 2: GImage(2); break;
+                    case 3: GImage(3); break;
+                    case 4: pinImage.sprite = pinSprites[GStt[2] == 0 ? 15 : 0]; break;
+                    case 5: pinImage.sprite = pinSprites[GStt[2] == 1 ? 15 : 0]; break;
+                    default: break;
                 }
-                else { pinImage.sprite = pinSprites[0]; }
             }
 
-            int TransDir()
+            void GImage(int i)
             {
-                return pathDir[x, y] switch
+                int j = (i == 2 ? 0 : 1);
+                switch (GStt[j])
                 {
-                    0 => 90,
-                    1 => 270,
-                    2 => 0,
-                    3 => 180,
-                    _ => 0,
-                };
+                    case 0: pinImage.sprite = pinSprites[GStt[2] == j ? 8 : 3]; break;
+                    case 1: pinImage.sprite = pinSprites[GStt[2] == j ? 10 : 13]; break;
+                    case 2: pinImage.sprite = pinSprites[GStt[2] == j ? 5 : 13]; break;
+                }
             }
         }
 
@@ -228,12 +188,6 @@ public class PinMark : MonoBehaviour
 
             SpriteRenderer lineImage = lines[i].GetComponent<SpriteRenderer>(); //선 색깔 지정
             lineImage.sprite = TileSprites[12];
-            /*if ((pinState[pathX[i], pathY[i]] == 3 && pinState[pathX[i + 1], pathY[i + 1]] == 3) ||
-                (pinState[pathX[i], pathY[i]] == 4 && pinState[pathX[i + 1], pathY[i + 1]] == 3) ||
-                (pinState[pathX[i], pathY[i]] == 3 && pinState[pathX[i + 1], pathY[i + 1]] == 4))
-            { lineImage.sprite = TileSprites[14]; }
-            else
-            { lineImage.sprite = TileSprites[12]; }*/
 
             Transform lineDir = lines[i].GetComponent<Transform>(); //선 방향 지정
             lineDir.Rotate(0, 0, (pathX[i] == pathX[i - 1]) ? 90 : 0);
@@ -249,16 +203,11 @@ public class PinMark : MonoBehaviour
             }
         }
     }
-
-    public void CreateMark() //플레이어 위치표지
+    void CreateMark() //플레이어 위치표지
     {
-        MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        int evnt0 = mapMove.eventTime[0];
-        int evnt1 = mapMove.eventTime[1];
+        RouteMake routeMake = GameObject.Find("Map").GetComponent<RouteMake>();
+        int[,] pathDir = routeMake.pathDir;
 
-        Transform gridPins = GameObject.Find("GridPins").transform; //부모 오브젝트 Transform
-        
-        //위치 변환 준비
         LoopBuildings loopBuildings = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
         Transform playerPos = GameObject.Find("Player").transform;
         int[] route = loopBuildings.route;
@@ -374,7 +323,7 @@ public class PinMark : MonoBehaviour
                 bound = markLc + left[5] + right[5] - 1.9f;
                 break;
             case 6:
-                bound = markLc + left[3] + right[3] - 1.9f;
+                bound = markLc + left[3] + right[3] + 1.9f;
                 break;
             case 7:
                 bound = markLc + right[7] + left[3] + right[3];
@@ -387,42 +336,42 @@ public class PinMark : MonoBehaviour
                 break;
         }
 
-        //추가 위치 특정
-        float w = Pos - markLc; //이동한 소거리
-        float ww = bound - markLc; //총 소거리
-        if (w <= ww)
+        //소위치 특정
+        float lB = Pos - markLc; //좌측 거리
+        float rB = Pos - bound; //우측 거리
+        float ww = bound - markLc; //경계 거리
+        if (Pos <= routePoint[routePoint.Length - 1] && Pos > 0)
         {
-            MoveMark(ww, routeDir[p]);
-        }
-        else
-        {
-            if (pathPoint[p] != 9 || pathPoint[p] != 11)
+            if (rB < 0 && (pathPoint[p] != 10 || pathPoint[p] != 12))
+            {
+                MoveMark(ww, routeDir[p]);
+            }
+            else
             {
                 MoveMark(routePoint[p + 1] - bound, routeDir[p]);
             }
-            
         }
 
         void MoveMark(float l, int d)
         {
-            if (w < ww)
+            if (rB < 0)
             {
                 switch (d) //이동
                 {
-                    case 0: { markY += w / l * 0.625f; break; }
-                    case 1: { markY -= w / l * 0.625f; break; }
-                    case 2: { markX += w / l * 0.625f; break; }
-                    case 3: { markX -= w / l * 0.625f; break; }
+                    case 0: { markY += lB / l * 0.625f; break; }
+                    case 1: { markY -= lB / l * 0.625f; break; }
+                    case 2: { markX += lB / l * 0.625f; break; }
+                    case 3: { markX -= lB / l * 0.625f; break; }
                 }
             }
             else
             {
                 switch (d) //이동
                 {
-                    case 0: { markY += w / l * 0.625f; break; }
-                    case 1: { markY -= w / l * 0.625f; break; }
-                    case 2: { markX += w / l * 0.625f; break; }
-                    case 3: { markX -= w / l * 0.625f; break; }
+                    case 0: { markY += 0.625f + (rB / l * 0.625f); break; }
+                    case 1: { markY -= 0.625f + (rB / l * 0.625f); break; }
+                    case 2: { markX += 0.625f + (rB / l * 0.625f); break; }
+                    case 3: { markX -= 0.625f + (rB / l * 0.625f); break; }
                 }
             }
         }
@@ -430,14 +379,28 @@ public class PinMark : MonoBehaviour
         //오브젝트 생성
         GameObject mPrefab = Resources.Load<GameObject>("Prefabs/Mark");
         GameObject playerMark = Instantiate(mPrefab, new Vector3(markX, markY, -2), Quaternion.identity);
+        Transform gridPins = GameObject.Find("GridPins").transform; //부모 오브젝트 Transform
         playerMark.transform.SetParent(gridPins, false);
-
         playerMark.name = "PlayerMark";
-        Transform MarkPos = playerMark.GetComponent<Transform>();
 
-        //이미지 부여
-        SpriteRenderer MarkImage = playerMark.GetComponent<SpriteRenderer>();
+        //이미지, 방향 부여
+        SpriteRenderer markImage = playerMark.GetComponent<SpriteRenderer>();
         Sprite[] pinImage = Resources.LoadAll<Sprite>("Prefabs/Pins");
-        MarkImage.sprite = pinImage[12];
+        markImage.sprite = pinImage[12];
+        Transform markTrans = playerMark.GetComponent<Transform>();
+        markTrans.Rotate(0, 0, TransDir(pathDir[pathX[p], pathY[p]]));
+
+        playerMark.AddComponent<MarkAct>();
+    }
+    int TransDir(int i)
+    {
+        return i switch
+        {
+            0 => 90,
+            1 => 270,
+            2 => 0,
+            3 => 180,
+            _ => 0,
+        };
     }
 }
