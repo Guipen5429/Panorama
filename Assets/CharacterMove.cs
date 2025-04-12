@@ -56,6 +56,8 @@ public class CharacterMove : MonoBehaviour
         float f = loopie.sum;
         float newPos = 0;
 
+        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
+
         if (evnt0 == 0)
         {
             Commander();
@@ -78,7 +80,10 @@ public class CharacterMove : MonoBehaviour
             newPos = pt.position.x;
 
             pt.position = new Vector3(newPos, pt.position.y, pt.position.z);
-            
+        }
+        if (evnt0 == 9)
+        {
+            pt.position = new Vector3(pinMark.Pos, pt.position.y, pt.position.z);
         }
     }
 

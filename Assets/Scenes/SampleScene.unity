@@ -782,44 +782,16 @@ MonoBehaviour:
   - {fileID: 8539309762774907527, guid: 2f2ca188605bee84ebc1f309c36b0198, type: 3}
   sum: 0
   initial: 0
-  leftIns:
-  - 9.9
-  - 11.7
-  - 18.3
-  - 6.6
-  - 9.9
-  - 3.8
-  - 9.9
-  - 18.3
-  - 6.6
-  - 6.6
-  - -20.7
-  - 9.9
-  - -20.7
-  - 0
-  rightIns:
-  - 9.9
-  - 11.9
-  - 18.5
-  - 9.9
-  - 6.6
-  - 9.9
-  - 3.8
-  - 18.5
-  - 6.6
-  - -20.7
-  - 6.6
-  - -20.7
-  - 9.9
-  - 0
+  sub: 0
   cameraDir: 
   routeDir: 
   pathDir: 
   path: 
+  routePoint: []
+  pathPoint: 
+  preSum: 0
   callB: 0
   evntB: 0
-  rcv: 0
-  rcv2: 0
 --- !u!1 &861409260
 GameObject:
   m_ObjectHideFlags: 0
@@ -1000,9 +972,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   callP: 0
   evntP: 0
-  rcv: 0
-  rcv2: 0
   pins: []
+  p: 0
+  pp: 0
+  Pos: 0
+  prePos: 0
 --- !u!212 &1135349589
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1067,10 +1041,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08012c71260b31d448f3de1c47d40ecc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  GStt: 
   callR: 0
   evntR: 0
-  rcv: 0
-  rcv2: 0
 --- !u!114 &1135349591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1083,10 +1056,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98cdd75c97dfb434e923c359ba91f9d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GStt: 
+  GStt2: 0
   pathX: 
   pathY: 
   pinCall: 0
+  call2: 0
 --- !u!1 &1280643883
 GameObject:
   m_ObjectHideFlags: 0
@@ -1306,6 +1280,7 @@ MonoBehaviour:
   isLayer:
     serializedVersion: 2
     m_Bits: 64
+  isChop: 0
   radius: 5
   angle: 30
   ignoredTag: Collider

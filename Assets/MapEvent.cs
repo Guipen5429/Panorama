@@ -44,7 +44,7 @@ public class MapEvent : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if (eventTime[0] == 0) { eventTime[0] = 2; mapBase.SetActive(true); }
+            if (eventTime[0] == 0) { eventTime[0] = 1; mapBase.SetActive(true); }
             else { eventTime[0] = 5; eventTime[1] = 2; }
         }
 
@@ -55,10 +55,9 @@ public class MapEvent : MonoBehaviour
         {
             switch (evntR)
             {
+                case 2: eventTime[0] = 2; break;
                 case 3: eventTime[0] = 5; break;
                 case 6: eventTime[0] = 5; eventTime[1] = 0; break;
-                case 9: eventTime[0] = 9; break;
-                case 5: eventTime[0] = 5; break;
             }
             rcv = false;
             rcv2 = false;
@@ -68,8 +67,9 @@ public class MapEvent : MonoBehaviour
         {
             switch (evntP)
             {
-                case 2: eventTime[0] = 2; break;
+                case 1: eventTime[0] = 1; break;
                 case 3: eventTime[0] = 3; eventTime[1] = 1; break;
+                case 4: eventTime[0] = 4; break;
                 case 6: eventTime[0] = 6; break;
                 case 8: mapBase.SetActive(false); eventTime[0] = 9; break;
             }
@@ -82,7 +82,8 @@ public class MapEvent : MonoBehaviour
             switch (evntB)
             {
                 case 0: eventTime[0] = 0; eventTime[1] = 0; eventTime[2] = 0; break;
-                case 4: eventTime[0] = 4; break;
+                case 5: eventTime[0] = 5; break;
+                case 9: eventTime[0] = 9; break;
             }
             rcv = false;
             rcv2 = false;

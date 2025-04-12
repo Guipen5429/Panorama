@@ -22,18 +22,21 @@ public class PinMark : MonoBehaviour
 {
     public bool callP;
     public int evntP;
-    public bool rcv;
-    public bool rcv2;
-    int[] pathX;
-    int[] pathY;
-    int[] GStt;
+    bool rcv;
+    bool rcv2;
 
     public GameObject[] pins;
+    int[] pathX;
+    int[] pathY;
+    public int p;
+    public float pp;
+    public float Pos;
+    bool pre;
+    public float prePos;
 
     void Start()
     {
         callP = false;
-        evntP = 0;
         rcv = false;
         rcv2 = true;
     }
@@ -46,19 +49,40 @@ public class PinMark : MonoBehaviour
         int evnt1 = mapMove.eventTime[1];
         bool go = mapMove.go;
 
-        if (evnt0 == 2 || evnt0 == 3 || evnt0 == 6 || evnt0 == 9) { rcv = false; rcv2 = true; callP = false; } //default
-        if (evnt0 == 2 || evnt0 == 5 && rcv2) { rcv = true; }
+        if (evnt0 == 1 || evnt0 == 3 || evnt0 == 4 || evnt0 == 6 || evnt0 == 9) { rcv = false; rcv2 = true; callP = false; } //default
+        if (evnt0 == 1 || evnt0 == 2 || evnt0 == 5 && rcv2) { rcv = true; }
 
-        //핀, 선, 마크 생성
-        if (evnt0 == 2 && !callP && go && rcv) 
+        if (evnt0 == 9) { pre = true; }
+
+        if (evnt0 == 1 && !callP && go && rcv) //마크 생성
         {
             PathMake pathMake = GameObject.Find("Map").GetComponent<PathMake>();
             pathX = pathMake.pathX;
             pathY = pathMake.pathY;
-            GStt = pathMake.GStt;
 
-            CreatePins();
+            Transform playerPos = GameObject.Find("Player").transform;
+            if (pre) { prePos = playerPos.position.x; pre = false; }
+
             CreateMark();
+
+            prePos = Pos;
+
+            if ((pp - p <= 0.08 || pp - p >= 0.92) && evnt1 == 1)
+            {
+                Transform gridPins = GameObject.Find("GridPins").transform;
+                GameObject.Destroy(GameObject.Find("PlayerMark"));
+            }
+
+            evntP = 4;
+            callP = true;
+            rcv = false;
+            rcv2 = false;
+        }
+
+        //핀, 선 생성
+        if (evnt0 == 2 && !callP && go && rcv) 
+        {
+            CreatePins();
 
             switch (evnt1)
             {
@@ -87,8 +111,8 @@ public class PinMark : MonoBehaviour
 
             switch (evnt1)
             {
-                case 0: evntP = 2; break;
-                case 1: evntP = 2; break;
+                case 0: evntP = 1; break;
+                case 1: evntP = 1; break;
                 case 2: evntP = 8; break;
                 default: break;
             }
@@ -97,12 +121,12 @@ public class PinMark : MonoBehaviour
             rcv2 = false;
         }
     }
-
     void CreatePins()
     {
         RouteMake routeMake = GameObject.Find("Map").GetComponent<RouteMake>();
         int[,] pinState = routeMake.pinState;
         int[,] pathDir = routeMake.pathDir;
+        int[] GStt = routeMake.GStt;
 
         Transform gridPins = GameObject.Find("GridPins").transform;
         GameObject[,] position = new GameObject[5, 5];
@@ -143,7 +167,7 @@ public class PinMark : MonoBehaviour
                 switch (pinState[x, y])
                 {
                     case 0: pinImage.sprite = pinSprites[0]; break;
-                    case 1: pinImage.sprite = pinSprites[1]; break;
+                    case 1: case 6: case 7: pinImage.sprite = pinSprites[1]; break;
                     case 2: case 3: pinImage.sprite = pinSprites[3]; break;
                     case 4: case 5: pinImage.sprite = pinSprites[0]; break;
                     default: break;
@@ -154,11 +178,12 @@ public class PinMark : MonoBehaviour
                 switch (pinState[x, y])
                 {
                     case 0: pinImage.sprite = pinSprites[0]; break;
-                    case 1: pinImage.sprite = pinSprites[6]; break;
+                    case 1: case 7: pinImage.sprite = pinSprites[6]; break;
                     case 2: GImage(2); break;
                     case 3: GImage(3); break;
                     case 4: pinImage.sprite = pinSprites[GStt[2] == 0 ? 15 : 0]; break;
                     case 5: pinImage.sprite = pinSprites[GStt[2] == 1 ? 15 : 0]; break;
+                    case 6: pinImage.sprite = pinSprites[12]; break;
                     default: break;
                 }
             }
@@ -209,106 +234,40 @@ public class PinMark : MonoBehaviour
         int[,] pathDir = routeMake.pathDir;
 
         LoopBuildings loopBuildings = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
-        Transform playerPos = GameObject.Find("Player").transform;
-        int[] route = loopBuildings.route;
         int[] path = loopBuildings.path;
         int[] routeDir = loopBuildings.routeDir;
+        float[] routePoint = loopBuildings.routePoint; //경로 상 포인트 거리
+        int[] pathPoint = loopBuildings.pathPoint; //경로 상 포인트
         float[] left = loopBuildings.leftIns;
         float[] right = loopBuildings.rightIns;
+        float preSum = loopBuildings.preSum;
+        float bound; //경계
 
-        float Pos = playerPos.position.x; //플레이어가 이동한 거리
-        float mSum = 0;
-        float[] routePoint = new float[path.Length]; //경로 상 포인트 거리
-        int[] pathPoint = new int[path.Length]; //경로 상 포인트
-        float markLc = 0; //최기 포인트 거리
-        float bound = 0; //경계
-        int p = 0; //포인트
-        float markX = 0; //마크 x좌표
-        float markY = 0; //마크 y좌표
-
-        //포인트 지정
-        int t = 0;
-        for (int i = 0; i < route.Length; i++)
-        {
-            if (i == 0) //경로 시작
-            {
-                routePoint[t] = 0;
-                mSum += right[route[i]]; pathPoint[t] = route[i];
-                t++;
-            }
-            else
-            {
-                switch (route[i])
-                {
-                    case 0: case 1: case 2:
-                        mSum += left[route[i]];
-                        routePoint[t] = mSum; pathPoint[t] = route[i];
-                        mSum += right[route[i]];
-                        t++; break;
-                    case 4:
-                        mSum += left[route[i]] + right[route[i]];
-                        routePoint[t] = mSum; pathPoint[t] = route[i];
-                        t++; break;
-                    case 6:
-                        mSum += left[route[i]] + right[route[i]] - 1.9f;
-                        routePoint[t] = mSum; mSum += 1.9f; pathPoint[t] = route[i];
-                        t++; break;
-                    case 3:
-                        mSum += left[route[i]] + right[route[i]];
-                        break;
-                    case 5:
-                        mSum += 1.9f;
-                        routePoint[--t] = mSum; pathPoint[t] = route[i];
-                        mSum += left[route[i]] + right[route[i]] - 1.9f;
-                        t++;  break;
-                    case 7:
-                        mSum += left[route[i]];
-                        routePoint[--t] = mSum; pathPoint[t] = route[i];
-                        mSum += right[route[i]];
-                        t++; break;
-                    case 9: case 11:
-                        mSum += left[route[i]] + right[route[i]];
-                        routePoint[t] = mSum; pathPoint[t] = route[i];
-                        t++; break;
-                    default:
-                        break;
-                }
-            }
-
-            if (t == path.Length)
-            {
-                break;
-            }
-        }
+        Pos = preSum == 0 ? prePos : prePos + routePoint[routePoint.Length - 1] - preSum;
 
         //최기 포인트 특정
         for (int i = 0; i < path.Length; i++)
         {
             if (i == 0 && Pos < routePoint[i])
             {
-                markLc = routePoint[i];
-                markX = pathX[i] * 1.25f;
-                markY = pathY[i] * 1.25f;
                 p = i;
                 break;
             }
             else if (Pos < routePoint[i])
             {
-                markLc = routePoint[i - 1];
-                markX = pathX[i - 1] * 1.25f;
-                markY = pathY[i - 1] * 1.25f;
                 p = i - 1;
                 break;
             }
             else if (i == path.Length - 1 && Pos >= routePoint[i])
             {
-                markLc = routePoint[i];
-                markX = pathX[i] * 1.25f;
-                markY = pathY[i] * 1.25f;
                 p = i;
                 break;
             }
         }
+
+        float markLc = routePoint[p]; //최기 포인트 거리
+        float markX = pathX[p] * 1.25f; ; //마크 x좌표
+        float markY = pathY[p] * 1.25f; //마크 y좌표
 
         //경계 특정
         switch (pathPoint[p])
@@ -337,8 +296,8 @@ public class PinMark : MonoBehaviour
         }
 
         //소위치 특정
-        float lB = Pos - markLc; //좌측 거리
-        float rB = Pos - bound; //우측 거리
+        float lB = Pos - markLc; //경계 좌측 거리
+        float rB = Pos - bound; //경계 우측 거리
         float ww = bound - markLc; //경계 거리
         if (Pos <= routePoint[routePoint.Length - 1] && Pos > 0)
         {
@@ -363,6 +322,7 @@ public class PinMark : MonoBehaviour
                     case 2: { markX += lB / l * 0.625f; break; }
                     case 3: { markX -= lB / l * 0.625f; break; }
                 }
+                pp = p + lB / l / 2;
             }
             else
             {
@@ -373,6 +333,7 @@ public class PinMark : MonoBehaviour
                     case 2: { markX += 0.625f + (rB / l * 0.625f); break; }
                     case 3: { markX -= 0.625f + (rB / l * 0.625f); break; }
                 }
+                pp = p + 0.5f + rB / l / 2;
             }
         }
 

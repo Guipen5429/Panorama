@@ -40,9 +40,12 @@ public class PinAct : MonoBehaviour
 
         if (evnt0 == 6 && !callPin && go)
         {
-            callPin = true;
+            if (pinState[(index - 1) % 5, (index - 1) / 5] != 0)
+            {
+                callPin = true;
+            }
         }
 
-        //Debug.Log("Pin " + index + " State : " + pinState[(index - 1) % 5, (index - 1) / 5]);
+        Debug.Log(pinState[(index - 1) % 5, (index - 1) / 5]);
     }
 }

@@ -5,9 +5,15 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEditor.PackageManager;
+using UnityEditor.Presets;
 using UnityEngine;
+using UnityEngine.Timeline;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
+using static UnityEditor.PlayerSettings;
 using static UnityEngine.EventSystems.EventTrigger;
 
 public class LoopBuildings : MonoBehaviour
@@ -22,9 +28,9 @@ public class LoopBuildings : MonoBehaviour
     Transform rightWall;
     Transform iCamera;
 
-    public int[,] map;
-    public float[] leftIns;
-    public float[] rightIns;
+    public readonly int[,] map = new int[,] { { 6, 4, 4, 4, 7 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 9, 2, 2, 2, 8 } }; //지형 정보 (0~9)
+    public readonly float[] leftIns = new float[] { 16.5f, 11.8f, 18.4f, 6.6f, 9.9f, 10.4f, 9.9f, 1.9f, 6.6f, 6.6f, -5.7f, 16.5f, 7.5f }; //왼쪽 거리;
+    public readonly float[] rightIns = new float[] { 16.5f, 11.8f, 18.4f, 9.9f, 6.6f, 9.9f, 10.4f, 1.9f, 6.6f, 0.9f, 0f, 7.5f, 16.5f }; //오른쪽 거리;
 
     int[] x;
     int[] y;
@@ -33,17 +39,25 @@ public class LoopBuildings : MonoBehaviour
     public int[] routeDir; //방향을 부여한 지형 정보, 0 ~ 15
     public int[] pathDir; //경로 지형 방향 변환, 0 ~ 15
     public int[] path;
+    public float[] routePoint = new float[] { 0 };
+    public int[] pathPoint;
+    public float preSum;
 
     public bool callB;
     public int evntB;
-    public bool rcv;
-    public bool rcv2;
+    bool rcv;
+    bool rcv2;
+
+    enum Dir
+    {
+        East = 0,
+        West = 1,
+        South = 2,
+        North = 3
+    }
 
     void Start()
     {
-        map = new int[,] { { 6, 4, 4, 4, 7 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 9, 2, 2, 2, 8 } }; //지형 정보 (0~9)
-        leftIns = new float[] { 16.5f, 11.8f, 18.4f, 6.6f, 9.9f, 10.4f, 9.9f, 1.9f, 6.6f, 6.6f, -5.7f, 16.5f, 7.5f }; //왼쪽 거리
-        rightIns = new float[] { 16.5f, 11.8f, 18.4f, 9.9f, 6.6f, 9.9f, 10.4f, 1.9f, 6.6f, 0.9f, 0f, 7.5f, 16.5f }; //오른쪽 거리
         callB = false;
         rcv = false;
         rcv2 = true;
@@ -57,7 +71,7 @@ public class LoopBuildings : MonoBehaviour
         int evnt2 = mapMove.eventTime[2];
         bool go = mapMove.go;
 
-        if (evnt0 == 0 || evnt0 == 4) { rcv = false; rcv2 = true; callB = false; } //default
+        if (evnt0 == 0 || evnt0 == 5 || evnt0 == 9) { rcv = false; rcv2 = true; callB = false; } //default
         if (evnt0 == 7 || evnt0 == 9 && rcv2) { rcv = true; }
 
         //경로 바꾸기
@@ -66,15 +80,28 @@ public class LoopBuildings : MonoBehaviour
             PathMake pathMake = GameObject.Find("Map").GetComponent<PathMake>();
             x = pathMake.pathX;
             y = pathMake.pathY;
+            bool call2 = pathMake.call2;
+
             CreateRoute();
+            preSum = call2 ? routePoint[routePoint.Length - 1] : 0;
+            LocateMark();
 
             string routeString = string.Join(", ", route);
             //Debug.Log("최종배경 : " + routeString);
 
-            evntB = 4;
+            switch (evnt1)
+            {
+                case 0: evntB = 9; break;
+                case 1: evntB = 5; break;
+            }
             callB = true;
             rcv = false;
             rcv2 = false;
+        }
+
+        if (evnt0 == 6)
+        {
+            preSum = routePoint[routePoint.Length - 1];
         }
 
         //배경 바꾸기
@@ -87,6 +114,7 @@ public class LoopBuildings : MonoBehaviour
                 {
                     GameObject.Destroy(childTransform.gameObject);
                 }
+                preSum = routePoint[routePoint.Length - 1];
                 sum = 0;
 
                 //배경 복제
@@ -122,11 +150,11 @@ public class LoopBuildings : MonoBehaviour
             {
                 if (x[i] != x[i + 1])
                 {
-                    cameraDir[i + 1] = (x[i] - x[i + 1] == 1) ? 1 : 0;
+                    cameraDir[i + 1] = (x[i] - x[i + 1] == 1) ? (int) Dir.West : (int)Dir.East;
                 }
                 else if (y[i] != y[i + 1])
                 {
-                    cameraDir[i + 1] = (y[i] - y[i + 1] == 1) ? 2 : 3;
+                    cameraDir[i + 1] = (y[i] - y[i + 1] == 1) ? (int)Dir.South : (int)Dir.North;
                 }
             }
         }
@@ -180,7 +208,7 @@ public class LoopBuildings : MonoBehaviour
             return i;
         }
 
-        //배경 정보
+        //route 생성
         int p = 0;
         int pp = 0;
         int dir = 0;
@@ -206,11 +234,11 @@ public class LoopBuildings : MonoBehaviour
                     {
                         case 0: RouteFrame(4, 9); break;
                         case 2: RouteFrame(4, 5); break;
+                        case 3: case 13: RouteTemp(pp++, 1); break;
                         case 5: RouteFrame(10, 3); break;
                         case 9: RouteFrame(6, 3); break;
-                        case 15: RouteFrame(4, 3); break;
-                        case 3: case 13: RouteTemp(pp++, 1); break;
                         case 10: RouteTemp(pp++, 0); break;
+                        case 15: RouteFrame(4, 3); break;
                     }
                     break;
                 case 6: case 7: case 8: case 9:
@@ -245,6 +273,66 @@ public class LoopBuildings : MonoBehaviour
                 route[i] = temp[i];
             }
             route[--pp] = b;
+        }
+    }
+
+    void LocateMark()
+    {
+        routePoint = new float[path.Length];
+        pathPoint = new int[path.Length];
+        float mSum = 0;
+        int t = 0;
+        for (int i = 0; i < route.Length; i++)
+        {
+            if (i == 0) //경로 시작
+            {
+                routePoint[t] = 0;
+                mSum += rightIns[route[i]]; pathPoint[t] = route[i];
+                t++;
+            }
+            else
+            {
+                switch (route[i])
+                {
+                    case 0: case 1: case 2:
+                        mSum += leftIns[route[i]];
+                        routePoint[t] = mSum; pathPoint[t] = route[i];
+                        mSum += rightIns[route[i]];
+                        t++; break;
+                    case 4: case 9:
+                        mSum += leftIns[route[i]] + rightIns[route[i]];
+                        routePoint[t] = mSum; pathPoint[t] = route[i];
+                        t++; break;
+                    case 6:
+                        mSum += leftIns[route[i]] + rightIns[route[i]] - 1.9f;
+                        routePoint[t] = mSum; mSum += 1.9f; pathPoint[t] = route[i];
+                        t++; break;
+                    case 3:
+                        mSum += leftIns[route[i]] + rightIns[route[i]];
+                        break;
+                    case 5:
+                        mSum += 1.9f;
+                        routePoint[--t] = mSum; pathPoint[t] = route[i];
+                        mSum += leftIns[route[i]] + rightIns[route[i]] - 1.9f;
+                        t++; break;
+                    case 7:
+                        mSum += leftIns[route[i]];
+                        routePoint[--t] = mSum; pathPoint[t] = route[i];
+                        mSum += rightIns[route[i]];
+                        t++; break;
+                    case 11:
+                        mSum += leftIns[route[i]];
+                        routePoint[t] = mSum; pathPoint[t] = route[i];
+                        t++; break;
+                    default:
+                        break;
+                }
+            }
+
+            if (t == path.Length)
+            {
+                break;
+            }
         }
     }
 

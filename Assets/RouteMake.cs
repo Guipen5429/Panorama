@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager;
+using UnityEditor.Presets;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
@@ -11,17 +12,18 @@ public class RouteMake : MonoBehaviour
 {
     public int[,] pinState = new int[5, 5]; //«…¿« ªÛ≈¬
     public int[,] pathDir = new int[5, 5];
+    public int[] GStt;
     int[] pathX; //∞Ê∑Œ x¡¬«•
     int[] pathY; //∞Ê∑Œ y¡¬«•
-    int[] GStt;
 
     public bool callR;
     public int evntR;
-    public bool rcv;
-    public bool rcv2;
+    bool rcv;
+    bool rcv2;
 
     void Start()
     {
+        GStt = new int[] { 0, 0, 0 };
         callR = false;
         rcv = false;
         rcv2 = true;
@@ -33,7 +35,7 @@ public class RouteMake : MonoBehaviour
         int evnt0 = mapMove.eventTime[0];
         int evnt1 = mapMove.eventTime[1];
         bool go = mapMove.go;
-        if (evnt0 == 5 || evnt0 == 9) { rcv = false; rcv2 = true; callR = false; } //default
+        if (evnt0 == 2 || evnt0 == 5) { rcv = false; rcv2 = true; callR = false; } //default
         if (evnt0 == 3 || evnt0 == 6 || evnt0 == 4 && rcv2) { rcv = true; }
 
         //R≈∞ ¥≠∑∂¿ª ∂ß
@@ -56,17 +58,12 @@ public class RouteMake : MonoBehaviour
             PathMake pathMake = GameObject.Find("Map").GetComponent<PathMake>();
             pathX = pathMake.pathX;
             pathY = pathMake.pathY;
-            GStt = pathMake.GStt;
+            GStt[2] = pathMake.GStt2;
 
             RouteStt();
             WhiteExpn();
 
-            switch (evnt1)
-            {
-                case 0: evntR = 9; break;
-                case 1: evntR = 5; break;
-                default: break;
-            }
+            evntR = 2;
             callR = true;
             rcv = false;
             rcv2 = false;
@@ -77,27 +74,78 @@ public class RouteMake : MonoBehaviour
     {
         LoopBuildings loopBuildings = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
         int[] iDir = loopBuildings.cameraDir;
+        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
+        int p = pinMark.p;
+        float pp = pinMark.pp;
 
-        for (int i = 0; i < 5; i++) //«… ªÛ≈¬ √ ±‚»≠
+        //«… ªÛ≈¬ √ ±‚»≠
+        for (int i = 0; i < pinState.GetLength(0); i++)
         {
-            for (int j = 0; j < 5; j++)
+            for (int j = 0; j < pinState.GetLength(1); j++)
             {
                 pinState[i, j] = 0;
+                pathDir[i, j] = 0;
             }
         }
+        GStt[0] = 0;
+        GStt[1] = 0;
 
+        //2, 3
         pinState[pathX[0], pathY[0]] = 2;
         pinState[pathX[^1], pathY[^1]] = 3;
 
+        //1
         for (int i = 1; i < pathX.Length - 1; i++)
         {
             pinState[pathX[i], pathY[i]] = 1;
         }
 
-        for (int i = 0; i < pathX.Length; i++) //∞Ê∑Œ «… º≥¡§
+        //6, 7
+        float subp = pp - p;
+        if (subp <= 0.08)
         {
-            pathDir[pathX[i], pathY[i]] = iDir[i + 1];
+            switch (pinState[pathX[p], pathY[p]])
+            {
+                case 1:
+                    pinState[pathX[p], pathY[p]] = 6; break;
+                case 2:
+                    GStt[0] = 1; break;
+                case 3:
+                    GStt[1] = 1; break;
+            }
         }
+        else if (subp >= 0.92)
+        {
+            switch (pinState[pathX[p + 1], pathY[p + 1]])
+            {
+                case 1:
+                    pinState[pathX[p + 1], pathY[p + 1]] = 6; break;
+                case 3:
+                    GStt[1] = 1; break;
+            }
+        }
+        else
+        {
+            switch (pinState[pathX[p], pathY[p]])
+            {
+                case 1:
+                    pinState[pathX[p], pathY[p]] = 7; break;
+                case 2:
+                    GStt[0] = 2; break;
+            }
+            switch (pinState[pathX[p + 1], pathY[p + 1]])
+            {
+                case 1:
+                    pinState[pathX[p + 1], pathY[p + 1]] = 7; break;
+                case 3:
+                    GStt[1] = 2; break;
+            }
+        }
+
+        for (int i = 0; i < pathX.Length; i++) //∞Ê∑Œ «… πÊ«‚ º≥¡§
+            {
+                pathDir[pathX[i], pathY[i]] = iDir[i + 1];
+            }
     }
 
     void WhiteExpn()
