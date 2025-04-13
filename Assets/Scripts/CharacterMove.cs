@@ -6,9 +6,16 @@ using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEditor.PlayerSettings;
 
 public class CharacterMove : MonoBehaviour
 {
+    public GameObject Map;
+    MapEvent mapEvent;
+    MarkMake markMake;
+    public GameObject BackGround;
+    LoopBuildings loopBuildings;
+
     public float moveSpeed; //이동 속력
     public float jumpPower; //점프 크기
 
@@ -27,11 +34,13 @@ public class CharacterMove : MonoBehaviour
 
     public float radius = 50f;
     public float angle = 90f;
-    public string ignoredTag;
-
 
     void Start()
     {
+        mapEvent = Map.GetComponent<MapEvent>();
+        markMake = Map.GetComponent<MarkMake>();
+        loopBuildings = BackGround.GetComponent<LoopBuildings>();
+
         rb = GetComponent<Rigidbody2D>(); //이동
         rd = GetComponent<SpriteRenderer>(); //방향
         anim = GetComponent<Animator>(); //애니메이션
@@ -47,16 +56,8 @@ public class CharacterMove : MonoBehaviour
         anim.SetBool("IsSlay", com[3]);
         dir = Input.GetAxisRaw("Horizontal"); //방향 지정
 
-        MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
         Transform pt = GameObject.Find("Player").transform;
-        int evnt0 = mapMove.eventTime[0];
-        int evnt1 = mapMove.eventTime[1];
-
-        LoopBuildings loopie = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
-        float f = loopie.sum;
-        float newPos = 0;
-
-        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
+        int evnt0 = mapEvent.eventTime[0];
 
         if (evnt0 == 0)
         {
@@ -77,21 +78,12 @@ public class CharacterMove : MonoBehaviour
                 }
             }
 
-            newPos = pt.position.x;
-
-            pt.position = new Vector3(newPos, pt.position.y, pt.position.z);
+            pt.position = new Vector3(pt.position.x, pt.position.y, pt.position.z);
         }
         if (evnt0 == 9)
         {
-            pt.position = new Vector3(pinMark.Pos, pt.position.y, pt.position.z);
-        }
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.tag == ignoredTag)
-        {
-            Physics.IgnoreCollision(collision.collider, GetComponent<Collider>());
+            //pt.position = new Vector3(markMake.Pos, pt.position.y, pt.position.z);
+            pt.position = new Vector3(InverseTransform(), pt.position.y, pt.position.z);
         }
     }
 
@@ -124,8 +116,63 @@ public class CharacterMove : MonoBehaviour
     {
         isChop = false;
     }
-    void FixedUpdate()
+    float InverseTransform()
     {
-        
+        float markLc = markMake.markLc;
+        int p = (int)markLc;
+        float subp = markLc - p; //소위치
+        if (subp <= 0.08)
+        {
+            markLc = p;
+        }
+        else if (subp >= 0.92f)
+        {
+            p++; markLc = p;
+        }
+        subp = markLc - p;
+
+        float[] routePoint = loopBuildings.routePoint;
+        int pPoint = loopBuildings.pathPoint[p];
+        float[] left = loopBuildings.leftIns;
+        float[] right = loopBuildings.rightIns;
+        float bound;
+        switch (pPoint)
+        {
+            case 0: case 1: case 2:
+                bound = right[pPoint];
+                break;
+            case 4: case 10:
+                bound = left[3] + right[3];
+                break;
+            case 5:
+                bound = left[5] + right[5] - 1.9f;
+                break;
+            case 6:
+                bound = left[3] + right[3] + 1.9f;
+                break;
+            case 7:
+                bound = right[7] + left[3] + right[3];
+                break;
+            case 12:
+                bound = right[pPoint];
+                break;
+            default:
+                bound = 0;
+                break;
+        }
+        float pos = 0; //최종 위치
+        if (markLc <= routePoint.Length - 1 && markLc > 0)
+        {
+            if (subp <= 0.5f && (pPoint != 10 || pPoint != 12))
+            {
+                pos = routePoint[p] + (bound * (subp * 2));
+            }
+            else
+            {
+                pos = routePoint[p] + bound + ((routePoint[p + 1] - routePoint[p] - bound) * ((subp - 0.5f) * 2));
+            }
+        }
+
+        return pos;
     }
 }

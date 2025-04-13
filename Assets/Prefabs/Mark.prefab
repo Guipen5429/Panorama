@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 296409249103512265}
   - component: {fileID: 8011254437921743731}
-  - component: {fileID: -3791497635374699223}
   - component: {fileID: 4208895447480442577}
   m_Layer: 0
   m_Name: Mark
@@ -91,21 +90,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &-3791497635374699223
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6120089480029055443}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a1272dfa466df542beb9c008f6afffb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  x: 
-  y: 
-  modifyDone: 1
 --- !u!58 &4208895447480442577
 CircleCollider2D:
   m_ObjectHideFlags: 0

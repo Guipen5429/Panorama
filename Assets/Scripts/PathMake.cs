@@ -5,9 +5,16 @@ using System.Drawing;
 using System.IO;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Timeline;
 
 public class PathMake : MonoBehaviour
 {
+    public GameObject Map;
+    MapEvent mapEvent;
+    PinMake pinMake;
+    MarkMake markMake;
+    RouteMake routeMake;
+
     public int GStt2;
     public int[] pathX;
     public int[] pathY;
@@ -24,14 +31,18 @@ public class PathMake : MonoBehaviour
         pathX = new int[] { 0, 1, 2, 3, 4 };
         pathY = new int[] { 0, 0, 0, 0, 0 };
         GStt2 = 0;
+
+        mapEvent = Map.GetComponent<MapEvent>();
+        routeMake = Map.GetComponent<RouteMake>();
+        markMake = Map.GetComponent<MarkMake>(); ;
+        pinMake = Map.GetComponent<PinMake>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        int evnt0 = mapMove.eventTime[0];
-        int evnt1 = mapMove.eventTime[1];
+        int evnt0 = mapEvent.eventTime[0];
+        int evnt1 = mapEvent.eventTime[1];
 
         if (evnt0 == 4) { call2 = false; }
         if (evnt0 == 7) { pinCall = false; }
@@ -43,8 +54,7 @@ public class PathMake : MonoBehaviour
                 pathLc[i] = (5 * pathY[i]) + pathX[i] + 1;
             }
             call2 = false;
-            PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-            GameObject[] pins = pinMark.pins;
+            GameObject[] pins = pinMake.pins;
             bool[] callPin = new bool[26];
             for (int i = 1; i < 26; i++)
             {
@@ -67,16 +77,35 @@ public class PathMake : MonoBehaviour
 
     public void CheckState(int x, int y)
     {
-        RouteMake routeMake = GameObject.Find("Map").GetComponent<RouteMake>();
         int[,] pinState = routeMake.pinState;
-        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-        int p = pinMark.p;
+        int p = markMake.p;
 
         switch (pinState[x, y])
         {
             case 1: case 7: Ctrc(Array.IndexOf(pathLc, 5 * y + x + 1)); pinCall = true; break;
-            case 2: if (GStt2 == 1) { GStt2 = 0; } pinCall = true; break;
-            case 3: if (GStt2 == 0) { GStt2 = 1; } pinCall = true; break;
+            case 2:
+                switch (GStt2)
+                {
+                    case 0:
+                        if (pinState[pathX[1], pathY[1]] == 6)
+                        {
+                            pathXList.RemoveAt(0);
+                            pathYList.RemoveAt(0);
+                            call2 = true;
+                        } break;
+                    case 1: GStt2 = 0; break;
+                } pinCall = true; break;
+            case 3:
+                switch (GStt2)
+                {
+                    case 0: GStt2 = 1; break;
+                    case 1:
+                        if (pinState[pathX[^2], pathY[^2]] == 6)
+                        {
+                            pathXList.RemoveAt(pathXList.Count - 1);
+                            pathYList.RemoveAt(pathYList.Count - 1);
+                        } break;
+                } pinCall = true; break;
             case 4: if (GStt2 == 0) { Expn(x, y, 0); call2 = true; } break;
             case 5: if (GStt2 == 1) { Expn(x, y, pathX.Length - 1); } break;
         }
@@ -140,8 +169,7 @@ public class PathMake : MonoBehaviour
 
     void Ctrc(int index)
     {
-        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-        int p = pinMark.p;
+        int p = markMake.p;
         if (index <= p)
         {
             for (int i = 0; i < index; i++)

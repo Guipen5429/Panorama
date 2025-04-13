@@ -10,6 +10,13 @@ using UnityEngine.UIElements;
 
 public class RouteMake : MonoBehaviour
 {
+    public GameObject Map;
+    MapEvent mapEvent;
+    MarkMake markMake;
+    PathMake pathMake;
+    public GameObject BackGround;
+    LoopBuildings loopBuildings;
+
     public int[,] pinState = new int[5, 5]; //핀의 상태
     public int[,] pathDir = new int[5, 5];
     public int[] GStt;
@@ -23,6 +30,11 @@ public class RouteMake : MonoBehaviour
 
     void Start()
     {
+        mapEvent = Map.GetComponent<MapEvent>();
+        pathMake = Map.GetComponent<PathMake>();
+        markMake = Map.GetComponent<MarkMake>();
+        loopBuildings = BackGround.GetComponent<LoopBuildings>();
+
         GStt = new int[] { 0, 0, 0 };
         callR = false;
         rcv = false;
@@ -31,10 +43,9 @@ public class RouteMake : MonoBehaviour
 
     private void Update()
     {
-        MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        int evnt0 = mapMove.eventTime[0];
-        int evnt1 = mapMove.eventTime[1];
-        bool go = mapMove.go;
+        int evnt0 = mapEvent.eventTime[0];
+        int evnt1 = mapEvent.eventTime[1];
+        bool go = mapEvent.go;
         if (evnt0 == 2 || evnt0 == 5) { rcv = false; rcv2 = true; callR = false; } //default
         if (evnt0 == 3 || evnt0 == 6 || evnt0 == 4 && rcv2) { rcv = true; }
 
@@ -55,7 +66,6 @@ public class RouteMake : MonoBehaviour
         //핀 상태 바꾸기
         if (evnt0 == 4 && !callR && go && rcv)
         {
-            PathMake pathMake = GameObject.Find("Map").GetComponent<PathMake>();
             pathX = pathMake.pathX;
             pathY = pathMake.pathY;
             GStt[2] = pathMake.GStt2;
@@ -72,11 +82,9 @@ public class RouteMake : MonoBehaviour
 
     void RouteStt()
     {
-        LoopBuildings loopBuildings = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
         int[] iDir = loopBuildings.cameraDir;
-        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-        int p = pinMark.p;
-        float pp = pinMark.pp;
+        int p = markMake.p;
+        float markLc = markMake.markLc;
 
         //핀 상태 초기화
         for (int i = 0; i < pinState.GetLength(0); i++)
@@ -101,7 +109,7 @@ public class RouteMake : MonoBehaviour
         }
 
         //6, 7
-        float subp = pp - p;
+        float subp = markLc - p; //소위치
         if (subp <= 0.08)
         {
             switch (pinState[pathX[p], pathY[p]])

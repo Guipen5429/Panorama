@@ -4,14 +4,17 @@ using UnityEngine;
 
 public class GroundScale : MonoBehaviour
 {
+    public GameObject BackGround;
+    LoopBuildings loopBuildings;
+
     void Start()
     {
-
+        loopBuildings = BackGround.GetComponent<LoopBuildings>();
     }
 
     void Update()
     {
-        float b = GameObject.Find("BackGround").GetComponent<LoopBuildings>().sum;
+        float b = loopBuildings.sum;
 
         this.transform.localScale =
             new Vector2(b + 50, 3); //±Ê¿Ã

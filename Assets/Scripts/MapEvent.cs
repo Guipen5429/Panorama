@@ -10,6 +10,14 @@ using UnityEngine.Video;
 
 public class MapEvent : MonoBehaviour
 {
+    public GameObject Map;
+    PinMake pin;
+    MarkMake mark;
+    PathMake path;
+    RouteMake route;
+    public GameObject BackGround;
+    LoopBuildings build;
+
     public Transform track; //Player(Tranform)
     public float distance;
     GameObject mapBase;
@@ -20,6 +28,12 @@ public class MapEvent : MonoBehaviour
 
     void Start()
     {
+        path = Map.GetComponent<PathMake>();
+        route = Map.GetComponent<RouteMake>();
+        mark = Map.GetComponent<MarkMake>();
+        pin = Map.GetComponent<PinMake>();
+        build = BackGround.GetComponent<LoopBuildings>();
+
         mapBase = transform.Find("MapBase").gameObject;
         mapBase.SetActive(false);
         eventTime = new int[]{ 7, 0, 1 };
@@ -27,16 +41,10 @@ public class MapEvent : MonoBehaviour
 
     void Update()
     {
-        PinMark pin = GameObject.Find("Map").GetComponent<PinMark>();
-        bool pCall = pin.callP;
-        int evntP = pin.evntP;
-        RouteMake route = GameObject.Find("Map").GetComponent<RouteMake>();
-        bool rCall = route.callR;
-        int evntR = route.evntR;
-        LoopBuildings build = GameObject.Find("BackGround").GetComponent<LoopBuildings>();
-        bool bCall = build.callB;
-        int evntB = build.evntB;
-        PathMake path = GameObject.Find("Map").GetComponent<PathMake>();
+        bool pCall = pin.callP; int evntP = pin.evntP;
+        bool mCall = mark.callM; int evntM = mark.evntM;
+        bool rCall = route.callR; int evntR = route.evntR;
+        bool bCall = build.callB; int evntB = build.evntB;
         bool pinCall = path.pinCall;
 
         //카메라를 추적
@@ -48,8 +56,8 @@ public class MapEvent : MonoBehaviour
             else { eventTime[0] = 5; eventTime[1] = 2; }
         }
 
-        if (!pCall && !rCall && !bCall && !pinCall) { go = true; rcv = false; rcv2 = true; } //default
-        if (pCall || rCall || bCall || pinCall && rcv2) { rcv = true; go = false; }
+        if (!pCall && !mCall && !rCall && !bCall && !pinCall) { go = true; rcv = false; rcv2 = true; } //default
+        if (pCall || mCall || rCall || bCall || pinCall && rcv2) { rcv = true; go = false; }
 
         if (rCall && rcv)
         {
@@ -69,9 +77,18 @@ public class MapEvent : MonoBehaviour
             {
                 case 1: eventTime[0] = 1; break;
                 case 3: eventTime[0] = 3; eventTime[1] = 1; break;
-                case 4: eventTime[0] = 4; break;
                 case 6: eventTime[0] = 6; break;
                 case 8: mapBase.SetActive(false); eventTime[0] = 9; break;
+            }
+            rcv = false;
+            rcv2 = false;
+        }
+
+        if (mCall && rcv)
+        {
+            switch (evntM)
+            {
+                case 4: eventTime[0] = 4; break;
             }
             rcv = false;
             rcv2 = false;

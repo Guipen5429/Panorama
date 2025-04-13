@@ -18,6 +18,10 @@ using static UnityEngine.EventSystems.EventTrigger;
 
 public class LoopBuildings : MonoBehaviour
 {
+    public GameObject Map;
+    MapEvent mapEvent;
+    PathMake pathMake;
+
     public int[] route = { 0 }; //경로 배열, 5칸에서 늘릴려면 x와 t좌표의 끝(맵의 한계)를 지정하고 만들어야 함
     public GameObject[] prefab; //프리팹 번호 지정
     public float sum = 0; //시작 지점으로부터의 길이
@@ -42,6 +46,7 @@ public class LoopBuildings : MonoBehaviour
     public float[] routePoint = new float[] { 0 };
     public int[] pathPoint;
     public float preSum;
+    public float markLc;
 
     public bool callB;
     public int evntB;
@@ -58,6 +63,9 @@ public class LoopBuildings : MonoBehaviour
 
     void Start()
     {
+        mapEvent = Map.GetComponent<MapEvent>();
+        pathMake = Map.GetComponent<PathMake>();
+
         callB = false;
         rcv = false;
         rcv2 = true;
@@ -65,11 +73,10 @@ public class LoopBuildings : MonoBehaviour
 
     void Update()
     {
-        MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        int evnt0 = mapMove.eventTime[0];
-        int evnt1 = mapMove.eventTime[1];
-        int evnt2 = mapMove.eventTime[2];
-        bool go = mapMove.go;
+        int evnt0 = mapEvent.eventTime[0];
+        int evnt1 = mapEvent.eventTime[1];
+        int evnt2 = mapEvent.eventTime[2];
+        bool go = mapEvent.go;
 
         if (evnt0 == 0 || evnt0 == 5 || evnt0 == 9) { rcv = false; rcv2 = true; callB = false; } //default
         if (evnt0 == 7 || evnt0 == 9 && rcv2) { rcv = true; }
@@ -77,13 +84,12 @@ public class LoopBuildings : MonoBehaviour
         //경로 바꾸기
         if (evnt0 == 7 && !callB && go && rcv)
         {
-            PathMake pathMake = GameObject.Find("Map").GetComponent<PathMake>();
             x = pathMake.pathX;
             y = pathMake.pathY;
             bool call2 = pathMake.call2;
 
             CreateRoute();
-            preSum = call2 ? routePoint[routePoint.Length - 1] : 0;
+            preSum = call2 ? routePoint[^1] : 0;
             LocateMark();
 
             string routeString = string.Join(", ", route);
@@ -101,7 +107,7 @@ public class LoopBuildings : MonoBehaviour
 
         if (evnt0 == 6)
         {
-            preSum = routePoint[routePoint.Length - 1];
+            preSum = routePoint[^1];
         }
 
         //배경 바꾸기
@@ -114,7 +120,7 @@ public class LoopBuildings : MonoBehaviour
                 {
                     GameObject.Destroy(childTransform.gameObject);
                 }
-                preSum = routePoint[routePoint.Length - 1];
+                preSum = routePoint[^1];
                 sum = 0;
 
                 //배경 복제

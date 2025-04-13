@@ -8,14 +8,23 @@ using UnityEngine;
 
 public class PinAct : MonoBehaviour
 {
+    public GameObject Map;
+    MapEvent mapEvent;
+    PinMake pinMake;
+    RouteMake routeMake;
+
     public int index;
     public bool callPin;
 
     // Start is called before the first frame update
     void Awake()
     {
-        PinMark pinMark = GameObject.Find("Map").GetComponent<PinMark>();
-        GameObject[] pins = pinMark.pins;
+        Map = GameObject.Find("Map");
+        mapEvent = Map.GetComponent<MapEvent>();
+        routeMake = Map.GetComponent<RouteMake>();
+        pinMake = Map.GetComponent<PinMake>();
+
+        GameObject[] pins = pinMake.pins;
 
         index = Array.IndexOf(pins, gameObject);
         callPin = false;
@@ -23,20 +32,16 @@ public class PinAct : MonoBehaviour
 
     private void Update()
     {
-        MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        int evnt0 = mapMove.eventTime[0];
+        int evnt0 = mapEvent.eventTime[0];
         if (evnt0 == 7) { callPin = false; }
     }
 
     private void OnMouseDown()
     {
-        MapEvent mapMove = GameObject.Find("Map").GetComponent<MapEvent>();
-        int evnt0 = mapMove.eventTime[0];
-        bool go = mapMove.go;
+        int evnt0 = mapEvent.eventTime[0];
+        bool go = mapEvent.go;
 
-        RouteMake routeMake = GameObject.Find("Map").GetComponent<RouteMake>();
         int[,] pinState = routeMake.pinState;
-
 
         if (evnt0 == 6 && !callPin && go)
         {
@@ -46,6 +51,6 @@ public class PinAct : MonoBehaviour
             }
         }
 
-        Debug.Log(pinState[(index - 1) % 5, (index - 1) / 5]);
+        //Debug.Log(pinState[(index - 1) % 5, (index - 1) / 5]);
     }
 }
