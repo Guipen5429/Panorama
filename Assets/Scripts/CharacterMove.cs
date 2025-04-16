@@ -13,6 +13,7 @@ public class CharacterMove : MonoBehaviour
     public GameObject Map;
     MapEvent mapEvent;
     MarkMake markMake;
+    PathMake pathMake;
     public GameObject BackGround;
     LoopBuildings loopBuildings;
 
@@ -39,6 +40,7 @@ public class CharacterMove : MonoBehaviour
     {
         mapEvent = Map.GetComponent<MapEvent>();
         markMake = Map.GetComponent<MarkMake>();
+        pathMake = Map.GetComponent<PathMake>();
         loopBuildings = BackGround.GetComponent<LoopBuildings>();
 
         rb = GetComponent<Rigidbody2D>(); //¿Ãµø
@@ -138,7 +140,7 @@ public class CharacterMove : MonoBehaviour
         float bound;
         switch (pPoint)
         {
-            case 0: case 1: case 2:
+            case 0: case 1: case 2: case 13: case 14:
                 bound = right[pPoint];
                 break;
             case 4: case 10:

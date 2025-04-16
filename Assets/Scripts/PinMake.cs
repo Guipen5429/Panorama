@@ -24,6 +24,8 @@ public class PinMake : MonoBehaviour
     MapEvent mapEvent;
     PathMake pathMake;
     RouteMake routeMake;
+    public GameObject BackGround;
+    LoopBuildings loopBuildings;
 
     public GameObject pPrefab;
     public GameObject lPrefab;
@@ -36,26 +38,28 @@ public class PinMake : MonoBehaviour
     public GameObject[] pins;
     int[] pathX;
     int[] pathY;
+    int mapL;
 
     void Start()
     {
         mapEvent = Map.GetComponent<MapEvent>();
         pathMake = Map.GetComponent<PathMake>();
         routeMake = Map.GetComponent<RouteMake>();
+        loopBuildings = BackGround.GetComponent<LoopBuildings>();
+
+        mapL = loopBuildings.mapL;
 
         callP = false;
         rcv = false;
         rcv2 = true;
     }
-
-    // Update is called once per frame
     void Update()
     {
         int evnt0 = mapEvent.eventTime[0];
         int evnt1 = mapEvent.eventTime[1];
         bool go = mapEvent.go;
 
-        if (evnt0 == 1 || evnt0 == 3 || evnt0 == 6 || evnt0 == 9) { rcv = false; rcv2 = true; callP = false; } //default
+        if (evnt0 == 1 || evnt0 == 3 || evnt0 == 6 || evnt0 == 8) { rcv = false; rcv2 = true; callP = false; } //default
         if (evnt0 == 2 || evnt0 == 5 && rcv2) { rcv = true; }
 
         //핀, 선 생성
@@ -114,28 +118,28 @@ public class PinMake : MonoBehaviour
         int[,] pathDir = routeMake.pathDir;
         int[] GStt = routeMake.GStt;
 
+        int evnt1 = mapEvent.eventTime[1];
+
         Transform gridPins = GameObject.Find("GridPins").transform;
-        GameObject[,] position = new GameObject[5, 5];
-        pins = new GameObject[26];
-        Sprite[] pinSprites = Resources.LoadAll<Sprite>("Images/Pins");
-        Sprite[] TileSprites = Resources.LoadAll<Sprite>("Images/Maptiles");
+        pins = new GameObject[mapL * mapL + 1];
 
         Transform gridLines = GameObject.Find("GridLines").transform;
         GameObject[] lines = new GameObject[pathX.Length];
 
-        int evnt1 = mapEvent.eventTime[1];
+        Sprite[] pinSprites = Resources.LoadAll<Sprite>("Images/Pins");
+        Sprite[] TileSprites = Resources.LoadAll<Sprite>("Images/Maptiles");
+
 
         int x;
         int y;
-        for (int i = 1; i <= 25; i++) //Pin 생성
+        for (int i = 1; i <= (mapL * mapL); i++) //Pin 생성
         {
-            x = (i - 1) % 5;
-            y = (i - 1) / 5;
+            x = (i - 1) % mapL;
+            y = (i - 1) / mapL;
             pins[i] = Instantiate(pPrefab, new Vector3(x * 1.25f, y * 1.25f, -1), Quaternion.identity); //핀 생성   
 
             pins[i].transform.SetParent(gridPins, false); //핀을 Grid_Pins의 자식으로 지정
             pins[i].name = "Pin " + x + "," + y; ; ; //핀 이름 지정
-            position[x, y] = pins[i]; //핀 위치 지정
 
             SpriteRenderer pinImage = pins[i].GetComponent<SpriteRenderer>(); //이미지 불러오기
             Transform pinDir = pins[i].GetComponent<Transform>();
@@ -188,13 +192,14 @@ public class PinMake : MonoBehaviour
             Transform prePinTrans = pins[pathPin(i - 1)].GetComponent<Transform>();
 
             lines[i] = Instantiate(lPrefab,
-                new Vector3(Average(pinTrans.position.x, prePinTrans.position.x), Average(pinTrans.position.y, prePinTrans.position.y), -1),
+                new Vector3(Average(pinTrans.position.x, prePinTrans.position.x), Average(pinTrans.position.y, prePinTrans.position.y), -2),
                 Quaternion.identity); //선 생성, 위치 지정
+
             lines[i].transform.SetParent(gridLines, true); //선 부모 지정
             lines[i].name = "Line " + i; //선 이름 지정
 
             SpriteRenderer lineImage = lines[i].GetComponent<SpriteRenderer>(); //선 색깔 지정
-            lineImage.sprite = TileSprites[12];
+            lineImage.sprite = TileSprites[21]; //선 이미지 지정
 
             Transform lineDir = lines[i].GetComponent<Transform>(); //선 방향 지정
             lineDir.Rotate(0, 0, (pathX[i] == pathX[i - 1]) ? 90 : 0);
@@ -206,7 +211,7 @@ public class PinMake : MonoBehaviour
 
             int pathPin(int i)
             {
-                return pathY[i] * 5 + pathX[i] + 1;
+                return pathY[i] * mapL + pathX[i] + 1;
             }
         }
     }

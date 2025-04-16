@@ -12,6 +12,8 @@ public class PinAct : MonoBehaviour
     MapEvent mapEvent;
     PinMake pinMake;
     RouteMake routeMake;
+    public GameObject BackGround;
+    LoopBuildings loopBuildings;
 
     public int index;
     public bool callPin;
@@ -23,6 +25,8 @@ public class PinAct : MonoBehaviour
         mapEvent = Map.GetComponent<MapEvent>();
         routeMake = Map.GetComponent<RouteMake>();
         pinMake = Map.GetComponent<PinMake>();
+        BackGround = GameObject.Find("BackGround");
+        loopBuildings = Map.GetComponent<LoopBuildings>();
 
         GameObject[] pins = pinMake.pins;
 
@@ -40,12 +44,15 @@ public class PinAct : MonoBehaviour
     {
         int evnt0 = mapEvent.eventTime[0];
         bool go = mapEvent.go;
+        BackGround = GameObject.Find("BackGround");
+        loopBuildings = BackGround.GetComponent<LoopBuildings>();
+        int mapL = loopBuildings.mapL;
 
         int[,] pinState = routeMake.pinState;
 
         if (evnt0 == 6 && !callPin && go)
         {
-            if (pinState[(index - 1) % 5, (index - 1) / 5] != 0)
+            if (pinState[(index - 1) % mapL, (index - 1) / mapL] != 0)
             {
                 callPin = true;
             }

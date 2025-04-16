@@ -32,9 +32,35 @@ public class LoopBuildings : MonoBehaviour
     Transform rightWall;
     Transform iCamera;
 
-    public readonly int[,] map = new int[,] { { 6, 4, 4, 4, 7 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 3, 1, 1, 1, 5 }, { 9, 2, 2, 2, 8 } }; //지형 정보 (0~9)
-    public readonly float[] leftIns = new float[] { 16.5f, 11.8f, 18.4f, 6.6f, 9.9f, 10.4f, 9.9f, 1.9f, 6.6f, 6.6f, -5.7f, 16.5f, 7.5f }; //왼쪽 거리;
-    public readonly float[] rightIns = new float[] { 16.5f, 11.8f, 18.4f, 9.9f, 6.6f, 9.9f, 10.4f, 1.9f, 6.6f, 0.9f, 0f, 7.5f, 16.5f }; //오른쪽 거리;
+    /*public readonly int[,] map = new int[,] { 
+        { 6, 4, 4, 4, 4, 4, 4, 4, 7 }, 
+        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
+        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
+        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
+        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
+        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
+        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
+        { 3, 1, 1, 1, 1, 1, 1, 1, 5 }, 
+        { 9, 2, 2, 2, 2, 2, 2, 2, 8 } }; //지형 정보 (0~9), 반시계로 한 번*/
+    /*public readonly int[,] map = new int[,] {
+        { 6, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 3, 0, 0, 6, 4, 4, 4, 7, 0 },
+        { 3, 0, 0, 3, 1, 1, 1, 5, 0 },
+        { 9, 1, 1, 1, 1, 1, 1, 5, 0 },
+        { 6, 4, 4, 1, 1, 1, 1, 5, 0 },
+        { 3, 1, 1, 1, 1, 1, 1, 5, 0 },
+        { 3, 1, 1, 1, 1, 1, 1, 5, 0 },
+        { 9, 2, 1, 1, 1, 1, 2, 8, 0 },
+        { 0, 0, 9, 2, 2, 8, 0, 0, 0 } }; //지형 정보 (0~19), 반시계로 한 번*/
+    public readonly int[,] map = new int[,] {
+        { 6, 4, 4, 4, 7 },
+        { 3, 1, 1, 1, 5 },
+        { 3, 1, 1, 1, 5 },
+        { 3, 1, 1, 1, 5 },
+        { 19, 2, 2, 2, 8 } }; //지형 정보 (0~9), 반시계로 한 번
+    public int mapL;
+    public readonly float[] leftIns = new float[] { 16.5f, 11.8f, 11.8f, 6.6f, 9.9f, 10.4f, 9.9f, 1.9f, 6.6f, 6.6f, -5.7f, 16.5f, 7.5f, 11.8f, 11.8f }; //왼쪽 거리;
+    public readonly float[] rightIns = new float[] { 16.5f, 11.8f, 11.8f, 9.9f, 6.6f, 9.9f, 10.4f, 1.9f, 6.6f, 0.9f, 0f, 7.5f, 16.5f, 11.8f, 11.8f }; //오른쪽 거리;
 
     int[] x;
     int[] y;
@@ -65,6 +91,7 @@ public class LoopBuildings : MonoBehaviour
     {
         mapEvent = Map.GetComponent<MapEvent>();
         pathMake = Map.GetComponent<PathMake>();
+        mapL = map.GetLength(0);
 
         callB = false;
         rcv = false;
@@ -172,7 +199,7 @@ public class LoopBuildings : MonoBehaviour
         {
             switch (path[i])
             {
-                case 1: case 2: case 6: //기본형
+                case 1: case 2: case 6: case 10: case 12: case 16://기본형
                     {
                         pathDir[i] = ClockWise(cameraDir[i], 0) * 4 + ClockWise(cameraDir[i + 1], 0);
                         break;
@@ -185,6 +212,21 @@ public class LoopBuildings : MonoBehaviour
                 case 7: case 8: case 9: //ㄴ자 변형
                     {
                         pathDir[i] = ClockWise(cameraDir[i], 10 - path[i]) * 4 + ClockWise(cameraDir[i + 1], 10 - path[i]);
+                        break;
+                    }
+                case 11: //ㅣ자 변형
+                    {
+                        pathDir[i] = ClockWise(cameraDir[i], 1) * 4 + ClockWise(cameraDir[i + 1], 1);
+                        break;
+                    }
+                case 13: case 14: case 15: //작은 ㅣ자 변형
+                    {
+                        pathDir[i] = ClockWise(cameraDir[i], 16 - path[i]) * 4 + ClockWise(cameraDir[i + 1], 16 - path[i]);
+                        break;
+                    }
+                case 17: case 18: case 19: //곡선 ㄴ자 변형
+                    {
+                        pathDir[i] = ClockWise(cameraDir[i], 20 - path[i]) * 4 + ClockWise(cameraDir[i + 1], 20 - path[i]);
                         break;
                     }
             }
@@ -257,17 +299,39 @@ public class LoopBuildings : MonoBehaviour
                         case 10: RouteFrame(4, 9); break;
                         case 15: RouteTemp(pp++, 12); break;
                     }
-
-                    void RouteFrame(int a, int b)
+                    break;
+                case 10: case 11:
+                    switch (pathDir[dir])
                     {
-                        RouteTemp(pp++, a);
-                        RouteTemp(pp++, b);
+                        case 10: case 15: RouteTemp(pp++, 0); break;
                     }
-
+                    break;
+                case 12: case 13: case 14: case 15:
+                    switch (pathDir[dir])
+                    {
+                        case 10: RouteTemp(pp++, 11); break;
+                    }
+                    break;
+                case 16: case 17: case 18: case 19:
+                    switch (pathDir[dir])
+                    {
+                        case 0: RouteFrame(10, 3); break;
+                        case 5: RouteTemp(pp++, 11); break;
+                        case 7: RouteTemp(pp++, 14); break;
+                        case 8: RouteTemp(pp++, 13); break;
+                        case 10: RouteFrame(4, 9); break;
+                        case 15: RouteTemp(pp++, 12); break;
+                    }
                     break;
             }
             dir++;
             p++;
+        }
+
+        void RouteFrame(int a, int b)
+        {
+            RouteTemp(pp++, a);
+            RouteTemp(pp++, b);
         }
 
         void RouteTemp(int pp, int b)
@@ -300,7 +364,7 @@ public class LoopBuildings : MonoBehaviour
             {
                 switch (route[i])
                 {
-                    case 0: case 1: case 2:
+                    case 0: case 1: case 2: case 13: case 14:
                         mSum += leftIns[route[i]];
                         routePoint[t] = mSum; pathPoint[t] = route[i];
                         mSum += rightIns[route[i]];
@@ -344,15 +408,14 @@ public class LoopBuildings : MonoBehaviour
 
     void FrameRoute() //배경 생성
     {
-        int blocks = route.Length;
         leftWall = GameObject.Find("LeftWall").transform;
         rightWall = GameObject.Find("RightWall").transform;
         iCamera = GameObject.Find("Main Camera").transform;
 
         Transform inses = GameObject.Find("Inses").transform;
-        GameObject[] buildings = new GameObject[blocks];
+        GameObject[] buildings = new GameObject[route.Length];
 
-        for (int i = 0; i < blocks; i++)
+        for (int i = 0; i < route.Length; i++)
         {
             if (i == 0) //경로 시작
             {
@@ -372,7 +435,7 @@ public class LoopBuildings : MonoBehaviour
 
             sum += rightIns[route[i]];
 
-            if (i == blocks - 1) //경로 끝
+            if (i == route.Length - 1) //경로 끝
             {
                 rightWall.position = new Vector3(sum - 3.4f, 0); //오른쪽 벽
             }

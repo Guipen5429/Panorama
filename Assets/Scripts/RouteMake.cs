@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager;
@@ -17,11 +18,12 @@ public class RouteMake : MonoBehaviour
     public GameObject BackGround;
     LoopBuildings loopBuildings;
 
-    public int[,] pinState = new int[5, 5]; //«…¿« ªÛ≈¬
-    public int[,] pathDir = new int[5, 5];
+    public int[,] pinState; //«…¿« ªÛ≈¬
+    public int[,] pathDir;
     public int[] GStt;
     int[] pathX; //∞Ê∑Œ x¡¬«•
     int[] pathY; //∞Ê∑Œ y¡¬«•
+    int mapL;
 
     public bool callR;
     public int evntR;
@@ -35,6 +37,10 @@ public class RouteMake : MonoBehaviour
         markMake = Map.GetComponent<MarkMake>();
         loopBuildings = BackGround.GetComponent<LoopBuildings>();
 
+        mapL = loopBuildings.mapL;
+        pinState = new int[mapL, mapL];
+        pathDir = new int[mapL, mapL];
+
         GStt = new int[] { 0, 0, 0 };
         callR = false;
         rcv = false;
@@ -44,7 +50,6 @@ public class RouteMake : MonoBehaviour
     private void Update()
     {
         int evnt0 = mapEvent.eventTime[0];
-        int evnt1 = mapEvent.eventTime[1];
         bool go = mapEvent.go;
         if (evnt0 == 2 || evnt0 == 5) { rcv = false; rcv2 = true; callR = false; } //default
         if (evnt0 == 3 || evnt0 == 6 || evnt0 == 4 && rcv2) { rcv = true; }
@@ -161,7 +166,7 @@ public class RouteMake : MonoBehaviour
         int i = GStt[2] == 0 ? 0 : pathX.Length - 1;
         int j = GStt[2] == 0 ? 4 : 5;
 
-        int k = pathY[i] + 1; while (k < 5)
+        int k = pathY[i] + 1; while (k < mapL)
         {
             if (pinState[pathX[i], k] == 0)
             {
@@ -183,7 +188,7 @@ public class RouteMake : MonoBehaviour
                 break;
             }
         }
-        k = pathX[i] + 1; while (k < 5)
+        k = pathX[i] + 1; while (k < mapL)
         {
             if (pinState[k, pathY[i]] == 0 || pinState[k, pathY[i]] == 4)
             {

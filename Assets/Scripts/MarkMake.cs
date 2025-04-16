@@ -80,6 +80,7 @@ public class MarkMake : MonoBehaviour
     }
     void CreateMarkLc() //마크 위치
     {
+        int pi = pathMake.pi; //마크 시작점
         int[] path = loopBuildings.path;
         int[] routeDir = loopBuildings.routeDir;
         float[] routePoint = loopBuildings.routePoint; //경로 상 포인트 거리
@@ -118,13 +119,10 @@ public class MarkMake : MonoBehaviour
         //경계 특정
         switch (pPoint)
         {
-            case 0:
-            case 1:
-            case 2:
+            case 0: case 1: case 2: case 13: case 14:
                 bound = pointLc + right[pPoint];
                 break;
-            case 4:
-            case 10:
+            case 4: case 10:
                 bound = pointLc + left[3] + right[3];
                 break;
             case 5:
@@ -148,7 +146,7 @@ public class MarkMake : MonoBehaviour
         float lB = Pos - pointLc; //좌측 경계 거리
         float rB = Pos - bound; //우측 경계 거리
         float ww = bound - pointLc; //경계 거리
-        if (Pos <= routePoint[^1] && Pos > 0)
+        if (Pos <= routePoint[(^1)] && Pos > 0)
         {
             if (rB < 0 && (pPoint != 10 || pPoint != 12))
             {
