@@ -23,7 +23,7 @@ public class CameraMove : MonoBehaviour
         int evnt0 = mapEvent.eventTime[0];
         int evnt1 = mapEvent.eventTime[1];
 
-        if (evnt0 == 0)
+        if (evnt0 == 0 || evnt1 == 3)
         {
             float s = loopBuildings.sum;
             float i = loopBuildings.initial;

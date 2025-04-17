@@ -74,6 +74,10 @@ public class LoopBuildings : MonoBehaviour
     public float preSum;
     public float markLc;
 
+    public int[] mPath;
+    public int[] mRouteDir;
+    public float[] mRoutePoint;
+
     public bool callB;
     public int evntB;
     bool rcv;
@@ -111,11 +115,12 @@ public class LoopBuildings : MonoBehaviour
         //경로 바꾸기
         if (evnt0 == 7 && !callB && go && rcv)
         {
-            x = pathMake.pathX;
-            y = pathMake.pathY;
+            x = pathMake.bPathX;
+            y = pathMake.bPathY;
             bool call2 = pathMake.call2;
 
             CreateRoute();
+            MapRoute();
             preSum = call2 ? routePoint[^1] : 0;
             LocateMark();
 
@@ -124,7 +129,7 @@ public class LoopBuildings : MonoBehaviour
 
             switch (evnt1)
             {
-                case 0: evntB = 9; break;
+                case 0: case 3: evntB = 9; break;
                 case 1: evntB = 5; break;
             }
             callB = true;
@@ -140,7 +145,7 @@ public class LoopBuildings : MonoBehaviour
         //배경 바꾸기
         if (evnt0 == 9 && !callB && go && rcv)
         {
-            if (evnt2 == 1)
+            if (evnt2 == 1 && evnt1 != 3)
             {
                 Transform inses = GameObject.Find("Inses").transform;
                 foreach (Transform childTransform in inses)
@@ -150,7 +155,6 @@ public class LoopBuildings : MonoBehaviour
                 preSum = routePoint[^1];
                 sum = 0;
 
-                //배경 복제
                 FrameRoute();
             }
 
@@ -191,7 +195,6 @@ public class LoopBuildings : MonoBehaviour
                 }
             }
         }
-        string camString = string.Join(", ", cameraDir);
 
         //경로 지형 방향 변환 생성
         pathDir = new int[cameraDir.Length - 1];
@@ -344,6 +347,11 @@ public class LoopBuildings : MonoBehaviour
             }
             route[--pp] = b;
         }
+    }
+
+    void MapRoute() //맵 시각화 전용 배열 생성
+    {
+        int pi = pathMake.pi;
     }
 
     void LocateMark()

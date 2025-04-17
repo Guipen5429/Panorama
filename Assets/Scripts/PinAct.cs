@@ -57,7 +57,5 @@ public class PinAct : MonoBehaviour
                 callPin = true;
             }
         }
-
-        //Debug.Log(pinState[(index - 1) % 5, (index - 1) / 5]);
     }
 }

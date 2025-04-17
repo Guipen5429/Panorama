@@ -29,6 +29,8 @@ public class MarkMake : MonoBehaviour
     public float Pos;
     float markX; //마크 x좌표
     float markY; //마크 y좌표
+    public float leftBound;
+    public float rightBound;
 
     public float prePos;
 
@@ -81,14 +83,15 @@ public class MarkMake : MonoBehaviour
     void CreateMarkLc() //마크 위치
     {
         int pi = pathMake.pi; //마크 시작점
-        int[] path = loopBuildings.path;
-        int[] routeDir = loopBuildings.routeDir;
-        float[] routePoint = loopBuildings.routePoint; //경로 상 포인트 거리
+        int[] path = loopBuildings.path[pi..(pi + pathMake.pathX.Length)];
+        int[] routeDir = loopBuildings.routeDir[pi..(pi + pathMake.pathX.Length)];
+        float[] routePoint = loopBuildings.routePoint[pi..(pi + pathMake.pathX.Length)]; //경로 상 포인트 거리
+        float[] bRoutePoint = loopBuildings.routePoint;
         float[] left = loopBuildings.leftIns;
         float[] right = loopBuildings.rightIns;
         float preSum = loopBuildings.preSum;
 
-        Pos = preSum == 0 ? prePos : prePos + routePoint[^1] - preSum;
+        Pos = preSum == 0 ? prePos : prePos + bRoutePoint[^1] - preSum;
 
         //최기 포인트 특정
         for (int i = 0; i < path.Length; i++)
@@ -113,33 +116,41 @@ public class MarkMake : MonoBehaviour
         float pointLc = routePoint[p]; //최기 포인트 거리
         markX = pathX[p] * 1.25f;
         markY = pathY[p] * 1.25f;
-        int pPoint = loopBuildings.pathPoint[p]; //경로 상 포인트
+        int[] pathPoint = loopBuildings.pathPoint;
+        int pPoint = pathPoint[p + pi]; //경로 상 포인트
         float bound; //경계
 
         //경계 특정
-        switch (pPoint)
+        bound = pointLc + BoundMake(pPoint);
+
+        float BoundMake(int p)
         {
-            case 0: case 1: case 2: case 13: case 14:
-                bound = pointLc + right[pPoint];
-                break;
-            case 4: case 10:
-                bound = pointLc + left[3] + right[3];
-                break;
-            case 5:
-                bound = pointLc + left[5] + right[5] - 1.9f;
-                break;
-            case 6:
-                bound = pointLc + left[3] + right[3] + 1.9f;
-                break;
-            case 7:
-                bound = pointLc + right[7] + left[3] + right[3];
-                break;
-            case 12:
-                bound = pointLc + right[pPoint];
-                break;
-            default:
-                bound = pointLc;
-                break;
+            float b;
+            switch (p)
+            {
+                case 0: case 1: case 2: case 13: case 14:
+                    b = right[p];
+                    break;
+                case 4: case 10:
+                    b = left[3] + right[3];
+                    break;
+                case 5:
+                    b = left[5] + right[5] - 1.9f;
+                    break;
+                case 6:
+                    b = left[3] + right[3] + 1.9f;
+                    break;
+                case 7:
+                    b = right[7] + left[3] + right[3];
+                    break;
+                case 12:
+                    b = right[p];
+                    break;
+                default:
+                    b = 0;
+                    break;
+            }
+            return b;
         }
 
         //소위치 특정
@@ -157,6 +168,7 @@ public class MarkMake : MonoBehaviour
                 MoveMark(routePoint[p + 1] - bound, routeDir[p]);
             }
         }
+        //Debug.Log(routePoint[(^1)]);
 
         void MoveMark(float l, int d)
         {
@@ -186,7 +198,7 @@ public class MarkMake : MonoBehaviour
     }
     void CreateMark() //플레이어 위치표지
     {
-        int[,] pathDir = routeMake.pathDir;
+        int[] cameraDir = loopBuildings.cameraDir;
 
         //오브젝트 생성
         GameObject playerMark = Instantiate(mPrefab, new Vector3(markX, markY, -2), Quaternion.identity);
@@ -199,7 +211,7 @@ public class MarkMake : MonoBehaviour
         Sprite[] pinSprites = Resources.LoadAll<Sprite>("Images/Pins");
         markImage.sprite = pinSprites[12];
         Transform markTrans = playerMark.GetComponent<Transform>();
-        markTrans.Rotate(0, 0, TransDir(pathDir[pathX[p], pathY[p]]));
+        markTrans.Rotate(0, 0, TransDir(cameraDir[p + pathMake.pi + 1]));
 
         playerMark.AddComponent<MarkAct>();
     }

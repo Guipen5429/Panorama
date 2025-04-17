@@ -887,6 +887,9 @@ MonoBehaviour:
   pathPoint: 
   preSum: 0
   markLc: 0
+  mPath: 
+  mRouteDir: 
+  mRoutePoint: []
   callB: 0
   evntB: 0
 --- !u!1 &861409260
@@ -1036,6 +1039,7 @@ MonoBehaviour:
   rcv: 0
   rcv2: 0
   go: 0
+  ex: 0
 --- !u!95 &1135349587
 Animator:
   serializedVersion: 5
@@ -1088,10 +1092,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Map: {fileID: 1135349584}
   BackGround: {fileID: 852505436}
+  Player: {fileID: 1376676494}
   GStt2: 0
   pathX: 
   pathY: 
+  bPathX: 
+  bPathY: 
+  pi: 0
+  pt: 0
   pinCall: 0
+  evntPin: 0
   call2: 0
 --- !u!114 &1135349592
 MonoBehaviour:
@@ -1113,6 +1123,8 @@ MonoBehaviour:
   p: 0
   markLc: 0
   Pos: 0
+  leftBound: 0
+  rightBound: 0
   prePos: 0
 --- !u!114 &1135349593
 MonoBehaviour:

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Security.Claims;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -18,6 +19,8 @@ public class PathMake : MonoBehaviour
     RouteMake routeMake;
     public GameObject BackGround;
     LoopBuildings loopBuildings;
+    public GameObject Player;
+    CharacterMove characterMove;
 
     public int GStt2;
     public int[] pathX;
@@ -28,6 +31,8 @@ public class PathMake : MonoBehaviour
     List<int> pathYList;
     int[] pathLc;
     int mapL;
+    float leftBound; //좌측 연장 경계
+    float rightBound; //우측 연장 경계
 
     public int pi;
     public int pt;
@@ -46,6 +51,7 @@ public class PathMake : MonoBehaviour
         markMake = Map.GetComponent<MarkMake>(); ;
         pinMake = Map.GetComponent<PinMake>();
         loopBuildings = BackGround.GetComponent<LoopBuildings>();
+        characterMove = Player.GetComponent<CharacterMove>();
 
         mapL = loopBuildings.mapL;
 
@@ -66,7 +72,7 @@ public class PathMake : MonoBehaviour
         int evnt1 = mapEvent.eventTime[1];
         bool go = mapEvent.go;
         if (evnt0 == 7 || evnt0 == 8 || evnt0 == 9) { rcv = false; rcv2 = true; pinCall = false; } //default
-        if (evnt0 == 6 || evnt0 == 8 && rcv2) { rcv = true; }
+        if (evnt0 == 0 || evnt0 == 6 || evnt0 == 8 && rcv2) { rcv = true; }
 
         if (evnt0 == 4) { call2 = false; }
         if (evnt0 == 6)
@@ -98,10 +104,11 @@ public class PathMake : MonoBehaviour
         }
         if (evnt0 == 8 && !pinCall && go && rcv)
         {
-            //PathExpn();
+            mapEvent.ex = 1;
+            BuildPathExpn();
             switch (evnt1)
             {
-                case 0: case 1: evntPin = 7; break;
+                case 0: case 1: case 3: evntPin = 7; break;
                 case 2: evntPin = 9; break;
             }
             pinCall = true;
@@ -110,6 +117,12 @@ public class PathMake : MonoBehaviour
         }
 
         if (evnt0 == 3) { GStt2 = 0; }
+        if (evnt0 == 9) { BoundMake(); }
+        if (evnt0 == 0 && !pinCall && go && rcv)
+        {
+            PathExpn();
+        }
+
     }
 
     public void CheckState(int x, int y)
@@ -227,7 +240,7 @@ public class PathMake : MonoBehaviour
         }
     }
 
-    void PathExpn()
+    void BuildPathExpn()
     {
         List<int> bPathXList = new List<int>(pathX);
         List<int> bPathYList = new List<int>(pathY);
@@ -317,5 +330,77 @@ public class PathMake : MonoBehaviour
         }
         bPathX = bPathXList.ToArray();
         bPathY = bPathYList.ToArray();
+    }
+
+    void BoundMake()
+    {
+        int[] pathPoint = loopBuildings.pathPoint;
+        float[] bRoutePoint = loopBuildings.routePoint;
+        float[] left = loopBuildings.leftIns;
+        float[] right = loopBuildings.rightIns;
+        leftBound = pi == 0 ? 0 : bRoutePoint[pi - 1] + BoundMake(pathPoint[pi - 1]); //좌측 연장 경계
+        rightBound = bRoutePoint[pi + pathX.Length - 1] + BoundMake(pathPoint[pi + pathX.Length - 1]); //우측 연장 경계
+        //Debug.Log("좌측 연장 경계: " + leftBound);
+        //Debug.Log("우측 연장 경계: " + rightBound);
+
+        float BoundMake(int p)
+        {
+            float b;
+            switch (p)
+            {
+                case 0: case 1: case 2: case 13: case 14:
+                    b = right[p];
+                    break;
+                case 4: case 10:
+                    b = left[3] + right[3];
+                    break;
+                case 5:
+                    b = left[5] + right[5] - 1.9f;
+                    break;
+                case 6:
+                    b = left[3] + right[3] + 1.9f;
+                    break;
+                case 7:
+                    b = right[7] + left[3] + right[3];
+                    break;
+                case 12:
+                    b = right[p];
+                    break;
+                default:
+                    b = 0;
+                    break;
+            }
+            return b;
+        }
+    }
+
+    void PathExpn()
+    {
+        float pX = Player.transform.position.x;
+        pathXList = new List<int>(pathX);
+        pathYList = new List<int>(pathY);
+
+        if (pX < leftBound && pi != 0)
+        {
+            pathXList.Insert(0, bPathX[pi - 1]);
+            pathYList.Insert(0, bPathY[pi - 1]);
+            Debug.Log("좌로 연장");
+            evntPin = 2;
+            pinCall = true;
+            rcv = false;
+            rcv2 = false;
+        }
+        else if (pX > rightBound)
+        {
+            pathXList.Add(bPathX[pi + pathX.Length]);
+            pathYList.Add(bPathY[pi + pathY.Length]);
+            Debug.Log("우로 연장");
+            evntPin = 2;
+            pinCall = true;
+            rcv = false;
+            rcv2 = false;
+        }
+        pathX = pathXList.ToArray();
+        pathY = pathYList.ToArray();
     }
 }

@@ -26,6 +26,8 @@ public class MapEvent : MonoBehaviour
     public bool rcv2;
     public bool go;
 
+    public int ex;
+
     void Start()
     {
         path = Map.GetComponent<PathMake>();
@@ -37,6 +39,8 @@ public class MapEvent : MonoBehaviour
         mapBase = transform.Find("MapBase").gameObject;
         mapBase.SetActive(false);
         eventTime = new int[]{ 8, 0, 1 };
+
+        ex = 0;
     }
 
     void Update()
@@ -110,6 +114,7 @@ public class MapEvent : MonoBehaviour
         {
             switch (evntPin)
             {
+                case 2: eventTime[0] = 8; eventTime[1] = 3; break;
                 case 7: eventTime[0] = 7; eventTime[2] = 1; break;
                 case 8: eventTime[0] = 8; break;
                 case 9: mapBase.SetActive(false); eventTime[0] = 9; break;

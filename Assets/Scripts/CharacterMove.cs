@@ -60,8 +60,9 @@ public class CharacterMove : MonoBehaviour
 
         Transform pt = GameObject.Find("Player").transform;
         int evnt0 = mapEvent.eventTime[0];
+        int evnt1 = mapEvent.eventTime[1];
 
-        if (evnt0 == 0)
+        if (evnt0 == 0 || evnt1 ==3)
         {
             Commander();
 
@@ -82,7 +83,7 @@ public class CharacterMove : MonoBehaviour
 
             pt.position = new Vector3(pt.position.x, pt.position.y, pt.position.z);
         }
-        if (evnt0 == 9)
+        if (evnt0 == 9 && evnt1 != 3)
         {
             //pt.position = new Vector3(markMake.Pos, pt.position.y, pt.position.z);
             pt.position = new Vector3(InverseTransform(), pt.position.y, pt.position.z);
@@ -120,7 +121,7 @@ public class CharacterMove : MonoBehaviour
     }
     float InverseTransform()
     {
-        float markLc = markMake.markLc;
+        float markLc = markMake.markLc + pathMake.pi;
         int p = (int)markLc;
         float subp = markLc - p; //¼ÒÀ§Ä¡
         if (subp <= 0.08)
