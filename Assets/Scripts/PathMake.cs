@@ -333,7 +333,6 @@ public class PathMake : MonoBehaviour
                     inini = map[bPathX[ini], bPathY[ini]];
                     if (map[bPathX[ini], bPathY[ini]] == 16 || map[bPathX[ini], bPathY[ini]] == 19)
                     {
-                        BuildAddInsert(ini, bPathX[ini], bPathY[ini]);
                         PsthExpn(inini == 16 ? 2 : 3, fb);
                     }
                     for (int i = bPathY[ini] - 1; i >= 0; i--)
@@ -357,7 +356,6 @@ public class PathMake : MonoBehaviour
                     inini = map[bPathX[ini], bPathY[ini]];
                     if (map[bPathX[ini], bPathY[ini]] == 18 || map[bPathX[ini], bPathY[ini]] == 19)
                     {
-                        BuildAddInsert(ini, bPathX[ini], bPathY[ini]);
                         PsthExpn(inini == 18 ? 1 : 0, fb);
                     }
                     for (int i = bPathX[ini] + 1; i < mapL; i++)
@@ -379,9 +377,8 @@ public class PathMake : MonoBehaviour
                 case 3:
                     ini = fb ? 0 : bPathYList.Count - 1;
                     inini = map[bPathX[ini], bPathY[ini]];
-                    if (map[bPathX[ini], bPathY[ini]] == 16 || map[bPathX[ini], bPathY[ini]] == 78)
+                    if (map[bPathX[ini], bPathY[ini]] == 16 || map[bPathX[ini], bPathY[ini]] == 17)
                     {
-                        BuildAddInsert(ini, bPathX[ini], bPathY[ini]);
                         PsthExpn(inini == 16 ? 0 : 1, fb);
                     }
                     for (int i = bPathX[ini] - 1; i >= 0; i--)
@@ -495,3 +492,40 @@ public class PathMake : MonoBehaviour
         pathY = pathYList.ToArray();
     }
 }
+
+/*class Terrain //½ÇÇè
+{
+    enum PathSort
+    {
+        Nothing, Cross,
+        Tup, Tright, Tdown, Tleft,
+        Lup, Lright, Ldown, Lleft,
+        Iup, Idown,
+        iup, iright, idown, ileft,
+        CurveLup, CurveLright, CurveLdown, CurveLleft,
+    }
+
+    int Tiling(bool[] boolArray)
+    {
+        string binaryString = string.Join("", Array.ConvertAll(boolArray, b => b ? "1" : "0"));
+        return binaryString switch
+        {
+            "00000" => (int)PathSort.Nothing,
+            "11110" => (int)PathSort.Cross,
+            "10110" => (int)PathSort.Tup,
+            "11100" => (int)PathSort.Tright,
+            "01110" => (int)PathSort.Tdown,
+            "11010" => (int)PathSort.Tleft,
+            "10100" => (int)PathSort.Lup,
+            "01100" => (int)PathSort.Lright,
+            "01010" => (int)PathSort.Ldown,
+            "10010" => (int)PathSort.Lleft,
+            "11000" => (int)PathSort.Iup,
+            "00110" => (int)PathSort.Idown,
+            "10101" => (int)PathSort.CurveLup,
+            "01101" => (int)PathSort.CurveLright,
+            "01011" => (int)PathSort.CurveLdown,
+            "10011" => (int)PathSort.CurveLleft,
+        };
+    }
+}*/
