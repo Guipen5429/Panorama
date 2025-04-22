@@ -55,8 +55,8 @@ public class PathMake : MonoBehaviour
 
         mapL = loopBuildings.mapL;
 
-        pathX = new int[] { 1, 2, 3 };
-        pathY = new int[] { 1, 1, 1 };
+        pathX = new int[] { 0, 1, 2 };
+        pathY = new int[] { 0, 0, 0 };
         GStt2 = 0;
 
         pinCall = false;
@@ -104,12 +104,15 @@ public class PathMake : MonoBehaviour
         }
         if (evnt0 == 8 && !pinCall && go && rcv)
         {
-            mapEvent.ex = 1;
             BuildPathExpn();
+            /*pi = 0;
+            bPathX = pathX;
+            bPathY = pathY;*/
             switch (evnt1)
             {
-                case 0: case 1: case 3: evntPin = 7; break;
+                case 0: case 1: /*BuildPathExpn();*/ evntPin = 7; break;
                 case 2: evntPin = 9; break;
+                case 3: evntPin = 7; break;
             }
             pinCall = true;
             rcv = false;
@@ -242,94 +245,182 @@ public class PathMake : MonoBehaviour
 
     void BuildPathExpn()
     {
-        List<int> bPathXList = new List<int>(pathX);
-        List<int> bPathYList = new List<int>(pathY);
         bPathX = pathX;
         bPathY = pathY;
+        List<int> bPathXList = new(bPathX);
+        List<int> bPathYList = new(bPathY);
         pi = 0;
+        int[,] map = loopBuildings.map;
 
         if (bPathX[0] == bPathX[1])
         {
-            if (bPathY[0] < bPathY[1])
+            if (bPathY[0] > bPathY[1])
             {
-                for (int i = bPathY[0] - 1; i >= 0; i--)
-                {
-                    bPathXList.Insert(0, bPathX[0]);
-                    bPathYList.Insert(0, i);
-                    pi++;
-                }
+                PsthExpn(0, true); //╩С
             }
             else
             {
-                for (int i = bPathY[0] + 1; i < mapL; i++)
-                {
-                    bPathXList.Insert(0, bPathX[0]);
-                    bPathYList.Insert(0, i);
-                    pi++;
-                }
+                PsthExpn(1, true); //го
             }
         }
         else
         {
-            if (bPathX[0] < bPathX[1])
+            if (bPathX[0] > bPathX[1])
             {
-                for (int i = bPathX[0] - 1; i >= 0; --i)
-                {
-                    bPathXList.Insert(0, i);
-                    bPathYList.Insert(0, bPathY[0]);
-                    pi++;
-                }
+                PsthExpn(2, true); //©Л
             }
             else
             {
-                for (int i = bPathX[0] + 1; i < mapL; ++i)
-                {
-                    bPathXList.Insert(0, i);
-                    bPathYList.Insert(0, bPathY[0]);
-                    pi++;
-                }
+                PsthExpn(3, true); //аб
             }
         }
         if (bPathX[^1] == bPathX[^2])
         {
-            if (bPathY[^1] < bPathY[^2])
+            if (bPathY[^1] > bPathY[^2])
             {
-                for (int i = bPathY[^1] - 1; i >= 0; i--)
-                {
-                    bPathXList.Add(bPathX[^1]);
-                    bPathYList.Add(i);
-                }
+                PsthExpn(0, false); //╩С
             }
             else
             {
-                for (int i = bPathY[^1] + 1; i < mapL; i++)
-                {
-                    bPathXList.Add(bPathX[^1]);
-                    bPathYList.Add(i);
-                }
+                PsthExpn(1, false); //го
             }
         }
         else
         {
-            if (bPathX[^1] < bPathX[^2])
+            if (bPathX[^1] > bPathX[^2])
             {
-                for (int i = bPathX[^1] - 1; i >= 0; --i)
-                {
-                    bPathXList.Add(i);
-                    bPathYList.Add(bPathY[^1]);
-                }
+                PsthExpn(2, false); //©Л
             }
             else
             {
-                for (int i = bPathX[^1] + 1; i < mapL; ++i)
+                PsthExpn(3, false); //аб
+            }
+        }
+
+        void PsthExpn(int d, bool fb)
+        {
+            bool hb = true;
+            bool b = true;
+            int ini;
+            int inini;
+            switch (d)
+            {
+                case 0:
+                    ini = fb ? 0 : bPathXList.Count - 1;
+                    inini = map[bPathX[ini], bPathY[ini]];
+                    if (map[bPathX[ini], bPathY[ini]] == 17 || map[bPathX[ini], bPathY[ini]] == 18)
+                    {
+                        PsthExpn(inini == 17 ? 2 : 3, fb);
+                    }
+                    for (int i = bPathY[ini] + 1; i < mapL; i++)
+                    {
+                        switch (map[bPathX[ini], i])
+                        {
+                            case 5: case 7: case 8: case 12: hb = false; break;
+                            case 17: BuildAddInsert(ini, bPathX[ini], i);
+                                PsthExpn(2, fb); break;
+                            case 18: BuildAddInsert(ini, bPathX[ini], i);
+                                PsthExpn(3, fb); break;
+                            case 1: case 2: case 4: case 10: hb = false; b = false; break;
+                            default: break;
+                        }
+                        if (hb) { break; }
+                        else if (b) { BuildAddInsert(ini, bPathX[ini], i); break; }
+                        else { BuildAddInsert(ini, bPathX[ini], i); hb = true; b = true; }
+                    } break;
+                case 1:
+                    ini = fb ? 0 : bPathXList.Count - 1;
+                    inini = map[bPathX[ini], bPathY[ini]];
+                    if (map[bPathX[ini], bPathY[ini]] == 16 || map[bPathX[ini], bPathY[ini]] == 19)
+                    {
+                        BuildAddInsert(ini, bPathX[ini], bPathY[ini]);
+                        PsthExpn(inini == 16 ? 2 : 3, fb);
+                    }
+                    for (int i = bPathY[ini] - 1; i >= 0; i--)
+                    {
+                        switch (map[bPathX[ini], i])
+                        {
+                            case 3: case 6: case 9: case 14: hb = false; break;
+                            case 16: BuildAddInsert(ini, bPathX[ini], i);
+                                PsthExpn(2, fb); break;
+                            case 19: BuildAddInsert(ini, bPathX[ini], i);
+                                PsthExpn(3, fb); break;
+                            case 1: case 2: case 4: case 10: hb = false; b = false; break;
+                            default: break;
+                        }
+                        if (hb) { break; }
+                        else if (b) { BuildAddInsert(ini, bPathX[ini], i); break; }
+                        else { BuildAddInsert(ini, bPathX[ini], i); hb = true; b = true; }
+                    } break;
+                case 2:
+                    ini = fb ? 0 : bPathYList.Count - 1;
+                    inini = map[bPathX[ini], bPathY[ini]];
+                    if (map[bPathX[ini], bPathY[ini]] == 18 || map[bPathX[ini], bPathY[ini]] == 19)
+                    {
+                        BuildAddInsert(ini, bPathX[ini], bPathY[ini]);
+                        PsthExpn(inini == 18 ? 1 : 0, fb);
+                    }
+                    for (int i = bPathX[ini] + 1; i < mapL; i++)
+                    {
+                        switch (map[i, bPathY[ini]])
+                        {
+                            case 2: case 8: case 9: case 15: hb = false; break;
+                            case 18: BuildAddInsert(ini, i, bPathY[ini]);
+                                PsthExpn(1, fb); break;
+                            case 19: BuildAddInsert(ini, i, bPathY[ini]);
+                                PsthExpn(0, fb); break;
+                            case 1: case 3: case 5: case 11: hb = false; b = false; break;
+                            default: break;
+                        }
+                        if (hb) { break; }
+                        else if (b) { BuildAddInsert(ini, i, bPathY[ini]); break; }
+                        else { BuildAddInsert(ini, i, bPathY[ini]); hb = true; b = true; }
+                    } break;
+                case 3:
+                    ini = fb ? 0 : bPathYList.Count - 1;
+                    inini = map[bPathX[ini], bPathY[ini]];
+                    if (map[bPathX[ini], bPathY[ini]] == 16 || map[bPathX[ini], bPathY[ini]] == 78)
+                    {
+                        BuildAddInsert(ini, bPathX[ini], bPathY[ini]);
+                        PsthExpn(inini == 16 ? 0 : 1, fb);
+                    }
+                    for (int i = bPathX[ini] - 1; i >= 0; i--)
+                    {
+                        switch (map[i, bPathY[ini]])
+                        {
+                            case 4: case 6: case 7: case 13: hb = false; break;
+                            case 16: BuildAddInsert(ini, i, bPathY[ini]);
+                                PsthExpn(0, fb); break;
+                            case 17: BuildAddInsert(ini, i, bPathY[ini]);
+                                PsthExpn(1, fb); break;
+                            case 1: case 3: case 5: case 11: hb = false; b = false; break;
+                            default: break;
+                        }
+                        if (hb) { break; }
+                        else if (b) { BuildAddInsert(ini, i, bPathY[ini]); break; }
+                        else { BuildAddInsert(ini, i, bPathY[ini]); hb = true; b = true; }
+                    } break;
+            }
+
+            void BuildAddInsert(int ini, int x, int y)
+            {
+                if (ini == 0)
                 {
-                    bPathXList.Add(i);
-                    bPathYList.Add(bPathY[^1]);
+                    bPathXList.Insert(0, x);
+                    bPathYList.Insert(0, y);
+                    bPathX = bPathXList.ToArray();
+                    bPathY = bPathYList.ToArray();
+                    pi++;
+                }
+                else
+                {
+                    bPathXList.Add(x);
+                    bPathYList.Add(y);
+                    bPathX = bPathXList.ToArray();
+                    bPathY = bPathYList.ToArray();
                 }
             }
         }
-        bPathX = bPathXList.ToArray();
-        bPathY = bPathYList.ToArray();
     }
 
     void BoundMake()

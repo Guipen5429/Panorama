@@ -157,7 +157,7 @@ public class MarkMake : MonoBehaviour
         float lB = Pos - pointLc; //좌측 경계 거리
         float rB = Pos - bound; //우측 경계 거리
         float ww = bound - pointLc; //경계 거리
-        if (Pos <= routePoint[(^1)] && Pos > 0)
+        if (Pos <= routePoint[^1] && Pos >= 0)
         {
             if (rB < 0 && (pPoint != 10 || pPoint != 12))
             {
@@ -168,33 +168,40 @@ public class MarkMake : MonoBehaviour
                 MoveMark(routePoint[p + 1] - bound, routeDir[p]);
             }
         }
-        //Debug.Log(routePoint[(^1)]);
-
-        void MoveMark(float l, int d)
+        else if (Pos < 0)
         {
-            if (rB < 0)
-            {
-                switch (d) //이동
-                {
-                    case 0: { markY += lB / l * 0.625f; break; }
-                    case 1: { markY -= lB / l * 0.625f; break; }
-                    case 2: { markX += lB / l * 0.625f; break; }
-                    case 3: { markX -= lB / l * 0.625f; break; }
-                }
-                markLc = p + lB / l / 2;
-            }
-            else
-            {
-                switch (d) //이동
-                {
-                    case 0: { markY += 0.625f + (rB / l * 0.625f); break; }
-                    case 1: { markY -= 0.625f + (rB / l * 0.625f); break; }
-                    case 2: { markX += 0.625f + (rB / l * 0.625f); break; }
-                    case 3: { markX -= 0.625f + (rB / l * 0.625f); break; }
-                }
-                markLc = p + 0.5f + rB / l / 2;
-            }
+            markLc = 0;
         }
+        else if (Pos > routePoint[^1])
+        {
+            markLc = routePoint.Length - 1;
+        }
+
+            void MoveMark(float l, int d)
+            {
+                if (rB < 0)
+                {
+                    switch (d) //이동
+                    {
+                        case 0: { markY += lB / l * 0.625f; break; }
+                        case 1: { markY -= lB / l * 0.625f; break; }
+                        case 2: { markX += lB / l * 0.625f; break; }
+                        case 3: { markX -= lB / l * 0.625f; break; }
+                    }
+                    markLc = p + lB / l / 2;
+                }
+                else
+                {
+                    switch (d) //이동
+                    {
+                        case 0: { markY += 0.625f + (rB / l * 0.625f); break; }
+                        case 1: { markY -= 0.625f + (rB / l * 0.625f); break; }
+                        case 2: { markX += 0.625f + (rB / l * 0.625f); break; }
+                        case 3: { markX -= 0.625f + (rB / l * 0.625f); break; }
+                    }
+                    markLc = p + 0.5f + rB / l / 2;
+                }
+            }
     }
     void CreateMark() //플레이어 위치표지
     {

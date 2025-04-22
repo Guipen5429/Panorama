@@ -26,8 +26,6 @@ public class MapEvent : MonoBehaviour
     public bool rcv2;
     public bool go;
 
-    public int ex;
-
     void Start()
     {
         path = Map.GetComponent<PathMake>();
@@ -39,8 +37,6 @@ public class MapEvent : MonoBehaviour
         mapBase = transform.Find("MapBase").gameObject;
         mapBase.SetActive(false);
         eventTime = new int[]{ 8, 0, 1 };
-
-        ex = 0;
     }
 
     void Update()

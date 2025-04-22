@@ -1039,7 +1039,6 @@ MonoBehaviour:
   rcv: 0
   rcv2: 0
   go: 0
-  ex: 0
 --- !u!95 &1135349587
 Animator:
   serializedVersion: 5

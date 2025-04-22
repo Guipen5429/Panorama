@@ -165,12 +165,28 @@ public class RouteMake : MonoBehaviour
     {
         int i = GStt[2] == 0 ? 0 : pathX.Length - 1;
         int j = GStt[2] == 0 ? 4 : 5;
+        int[,] map = loopBuildings.map;
+        bool hb = true;
+        bool b = true;
 
         int k = pathY[i] + 1; while (k < mapL)
         {
             if (pinState[pathX[i], k] == 0)
             {
-                pinState[pathX[i], k] = j; k++;
+                switch (map[pathX[i], k])
+                {
+                    case 5: case 7: case 8: hb = false; break;
+                    case 1: case 2: case 4: case 10: hb = false; b = false; break;
+                }
+                if (hb) { break; }
+                else if (b)
+                {
+                    pinState[pathX[i], k] = j; hb = true; break;
+                }
+                else
+                {
+                    pinState[pathX[i], k] = j; k++; hb = true; b = true;
+                }
             }
             else
             {
@@ -181,7 +197,20 @@ public class RouteMake : MonoBehaviour
         {
             if (pinState[pathX[i], k] == 0)
             {
-                pinState[pathX[i], k] = j; k--;
+                switch (map[pathX[i], k])
+                {
+                    case 3: case 6: case 9: hb = false; break;
+                    case 1: case 2: case 4: case 10: hb = false; b = false; break;
+                }
+                if (hb) { break; }
+                else if (b)
+                {
+                    pinState[pathX[i], k] = j; hb = true; break;
+                }
+                else
+                {
+                    pinState[pathX[i], k] = j; k--; hb = true; b = true;
+                }
             }
             else
             {
@@ -190,9 +219,22 @@ public class RouteMake : MonoBehaviour
         }
         k = pathX[i] + 1; while (k < mapL)
         {
-            if (pinState[k, pathY[i]] == 0 || pinState[k, pathY[i]] == 4)
+            if (pinState[k, pathY[i]] == 0)
             {
-                pinState[k, pathY[i]] = j; k++;
+                switch (map[k, pathY[i]])
+                {
+                    case 2: case 8: case 9: hb = false; break;
+                    case 1: case 3: case 5: case 11: hb = false; b = false; break;
+                }
+                if (hb) { break; }
+                else if (b)
+                {
+                    pinState[k, pathY[i]] = j; hb = true; break;
+                }
+                else
+                {
+                    pinState[k, pathY[i]] = j; k++; hb = true; b = true;
+                }
             }
             else
             {
@@ -201,9 +243,22 @@ public class RouteMake : MonoBehaviour
         }
         k = pathX[i] - 1; while (k >= 0)
         {
-            if (pinState[k, pathY[i]] == 0 || pinState[k, pathY[i]] == 4)
+            if (pinState[k, pathY[i]] == 0)
             {
-                pinState[k, pathY[i]] = j; k--;
+                switch (map[k, pathY[i]])
+                {
+                    case 4: case 6: case 7: hb = false; break;
+                    case 1: case 3: case 5: case 11: hb = false; b = false; break;
+                }
+                if (hb) { break; }
+                else if (b)
+                {
+                    pinState[k, pathY[i]] = j; hb = true; break;
+                }
+                else
+                {
+                    pinState[k, pathY[i]] = j; k--; hb = true; b = true;
+                }
             }
             else
             {

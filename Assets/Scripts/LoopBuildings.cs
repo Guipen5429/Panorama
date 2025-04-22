@@ -43,9 +43,9 @@ public class LoopBuildings : MonoBehaviour
         { 3, 1, 1, 1, 1, 1, 1, 1, 5 }, 
         { 9, 2, 2, 2, 2, 2, 2, 2, 8 } }; //지형 정보 (0~9), 반시계로 한 번*/
     /*public readonly int[,] map = new int[,] {
-        { 6, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 3, 0, 0, 6, 4, 4, 4, 7, 0 },
-        { 3, 0, 0, 3, 1, 1, 1, 5, 0 },
+        { 13, 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 11, 0, 0, 6, 4, 4, 4, 7, 0 },
+        { 11, 0, 0, 3, 1, 1, 1, 5, 0 },
         { 9, 1, 1, 1, 1, 1, 1, 5, 0 },
         { 6, 4, 4, 1, 1, 1, 1, 5, 0 },
         { 3, 1, 1, 1, 1, 1, 1, 5, 0 },
@@ -53,7 +53,7 @@ public class LoopBuildings : MonoBehaviour
         { 9, 2, 1, 1, 1, 1, 2, 8, 0 },
         { 0, 0, 9, 2, 2, 8, 0, 0, 0 } }; //지형 정보 (0~19), 반시계로 한 번*/
     public readonly int[,] map = new int[,] {
-        { 6, 4, 4, 4, 7 },
+        { 13, 6, 4, 4, 7 },
         { 3, 1, 1, 1, 5 },
         { 3, 1, 1, 1, 5 },
         { 3, 1, 1, 1, 5 },
@@ -313,6 +313,7 @@ public class LoopBuildings : MonoBehaviour
                     switch (pathDir[dir])
                     {
                         case 10: RouteTemp(pp++, 11); break;
+                        case 15: RouteTemp(pp++, 12); break;
                     }
                     break;
                 case 16: case 17: case 18: case 19:
