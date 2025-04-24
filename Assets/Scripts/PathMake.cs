@@ -464,6 +464,7 @@ public class PathMake : MonoBehaviour
 
     void PathExpn()
     {
+        float[] bRoutePoint = loopBuildings.routePoint;
         float pX = Player.transform.position.x;
         pathXList = new List<int>(pathX);
         pathYList = new List<int>(pathY);
@@ -478,7 +479,7 @@ public class PathMake : MonoBehaviour
             rcv = false;
             rcv2 = false;
         }
-        else if (pX > rightBound)
+        else if (pX > rightBound && rightBound != bRoutePoint[^1])
         {
             pathXList.Add(bPathX[pi + pathX.Length]);
             pathYList.Add(bPathY[pi + pathY.Length]);

@@ -20,7 +20,7 @@ public class MapEvent : MonoBehaviour
 
     public Transform track; //Player(Tranform)
     public float distance;
-    GameObject mapBase;
+    public GameObject mapBase;
     public int[] eventTime;
     public bool rcv;
     public bool rcv2;
@@ -34,7 +34,6 @@ public class MapEvent : MonoBehaviour
         pin = Map.GetComponent<PinMake>();
         build = BackGround.GetComponent<LoopBuildings>();
 
-        mapBase = transform.Find("MapBase").gameObject;
         mapBase.SetActive(false);
         eventTime = new int[]{ 8, 0, 1 };
     }

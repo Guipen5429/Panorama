@@ -175,7 +175,7 @@ public class RouteMake : MonoBehaviour
             {
                 switch (map[pathX[i], k])
                 {
-                    case 5: case 7: case 8: hb = false; break;
+                    case 5: case 7: case 8: case 14: hb = false; break;
                     case 1: case 2: case 4: case 10: hb = false; b = false; break;
                 }
                 if (hb) { break; }
@@ -199,7 +199,7 @@ public class RouteMake : MonoBehaviour
             {
                 switch (map[pathX[i], k])
                 {
-                    case 3: case 6: case 9: hb = false; break;
+                    case 3: case 6: case 9: case 12: hb = false; break;
                     case 1: case 2: case 4: case 10: hb = false; b = false; break;
                 }
                 if (hb) { break; }
@@ -223,7 +223,7 @@ public class RouteMake : MonoBehaviour
             {
                 switch (map[k, pathY[i]])
                 {
-                    case 2: case 8: case 9: hb = false; break;
+                    case 2: case 8: case 9: case 15: hb = false; break;
                     case 1: case 3: case 5: case 11: hb = false; b = false; break;
                 }
                 if (hb) { break; }
@@ -247,7 +247,7 @@ public class RouteMake : MonoBehaviour
             {
                 switch (map[k, pathY[i]])
                 {
-                    case 4: case 6: case 7: hb = false; break;
+                    case 4: case 6: case 7: case 13: hb = false; break;
                     case 1: case 3: case 5: case 11: hb = false; b = false; break;
                 }
                 if (hb) { break; }

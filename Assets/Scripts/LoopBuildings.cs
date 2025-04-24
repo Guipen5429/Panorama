@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Unity.Mathematics;
 using Unity.VisualScripting;
@@ -18,6 +19,11 @@ using static UnityEngine.EventSystems.EventTrigger;
 
 public class LoopBuildings : MonoBehaviour
 {
+    public GameObject MapManager;
+    MapTerrain mapTerrain;
+    public int[,] map;
+    public int mapL;
+
     public GameObject Map;
     MapEvent mapEvent;
     PathMake pathMake;
@@ -28,37 +34,11 @@ public class LoopBuildings : MonoBehaviour
     public float initial = 0;
     public float sub = 0;
 
-    Transform leftWall;
-    Transform rightWall;
-    Transform iCamera;
+    public Transform leftWall;
+    public Transform rightWall;
+    public Transform iCamera;
+    public Transform inses;
 
-    /*public readonly int[,] map = new int[,] { 
-        { 6, 4, 4, 4, 4, 4, 4, 4, 7 }, 
-        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
-        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
-        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
-        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
-        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
-        { 3, 1, 1, 1, 1, 1, 1, 1, 5 },
-        { 3, 1, 1, 1, 1, 1, 1, 1, 5 }, 
-        { 9, 2, 2, 2, 2, 2, 2, 2, 8 } }; //지형 정보 (0~9), 반시계로 한 번*/
-    /*public readonly int[,] map = new int[,] {
-        { 13, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 11, 0, 0, 6, 4, 4, 4, 7, 0 },
-        { 11, 0, 0, 3, 1, 1, 1, 5, 0 },
-        { 9, 1, 1, 1, 1, 1, 1, 5, 0 },
-        { 6, 4, 4, 1, 1, 1, 1, 5, 0 },
-        { 3, 1, 1, 1, 1, 1, 1, 5, 0 },
-        { 3, 1, 1, 1, 1, 1, 1, 5, 0 },
-        { 9, 2, 1, 1, 1, 1, 2, 8, 0 },
-        { 0, 0, 9, 2, 2, 8, 0, 0, 0 } }; //지형 정보 (0~19), 반시계로 한 번*/
-    public readonly int[,] map = new int[,] {
-        { 6, 4, 4, 4, 7 },
-        { 3, 1, 1, 1, 5 },
-        { 3, 1, 1, 1, 5 },
-        { 3, 1, 1, 1, 5 },
-        { 19, 2, 2, 2, 8 } }; //지형 정보 (0~9), 반시계로 한 번
-    public int mapL;
     public readonly float[] leftIns = new float[] { 16.5f, 11.8f, 11.8f, 6.6f, 9.9f, 10.4f, 9.9f, 1.9f, 6.6f, 6.6f, -5.7f, 16.5f, 7.5f, 11.8f, 11.8f }; //왼쪽 거리;
     public readonly float[] rightIns = new float[] { 16.5f, 11.8f, 11.8f, 9.9f, 6.6f, 9.9f, 10.4f, 1.9f, 6.6f, 0.9f, 0f, 7.5f, 16.5f, 11.8f, 11.8f }; //오른쪽 거리;
 
@@ -95,6 +75,9 @@ public class LoopBuildings : MonoBehaviour
     {
         mapEvent = Map.GetComponent<MapEvent>();
         pathMake = Map.GetComponent<PathMake>();
+
+        mapTerrain = MapManager.GetComponent<MapTerrain>();
+        map = mapTerrain.map;
         mapL = map.GetLength(0);
 
         callB = false;
@@ -417,11 +400,6 @@ public class LoopBuildings : MonoBehaviour
 
     void FrameRoute() //배경 생성
     {
-        leftWall = GameObject.Find("LeftWall").transform;
-        rightWall = GameObject.Find("RightWall").transform;
-        iCamera = GameObject.Find("Main Camera").transform;
-
-        Transform inses = GameObject.Find("Inses").transform;
         GameObject[] buildings = new GameObject[route.Length];
 
         for (int i = 0; i < route.Length; i++)

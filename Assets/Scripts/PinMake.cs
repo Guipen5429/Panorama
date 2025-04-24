@@ -201,8 +201,9 @@ public class PinMake : MonoBehaviour
             SpriteRenderer lineImage = lines[i].GetComponent<SpriteRenderer>(); //선 색깔 지정
             lineImage.sprite = TileSprites[21]; //선 이미지 지정
 
-            Transform lineDir = lines[i].GetComponent<Transform>(); //선 방향 지정
-            lineDir.Rotate(0, 0, (pathX[i] == pathX[i - 1]) ? 90 : 0);
+            Transform lineTrans = lines[i].GetComponent<Transform>();
+            lineTrans.Rotate(0, 0, (pathX[i] == pathX[i - 1]) ? 90 : 0); //선 방향 지정
+            lineTrans.localScale = new Vector3(1, 1, 1);
 
             float Average(float a, float b)
             {
