@@ -27,7 +27,9 @@ public class PinMake : MonoBehaviour
     public GameObject BackGround;
     LoopBuildings loopBuildings;
 
+    public Transform gridPins;
     public GameObject pPrefab;
+    public Transform gridLines;
     public GameObject lPrefab;
 
     public bool callP;
@@ -69,6 +71,7 @@ public class PinMake : MonoBehaviour
             pathY = pathMake.pathY;
 
             CreatePins();
+            CreateLines();
 
             switch (evnt1)
             {
@@ -120,14 +123,8 @@ public class PinMake : MonoBehaviour
 
         int evnt1 = mapEvent.eventTime[1];
 
-        Transform gridPins = GameObject.Find("GridPins").transform;
         pins = new GameObject[mapL * mapL + 1];
-
-        Transform gridLines = GameObject.Find("GridLines").transform;
-        GameObject[] lines = new GameObject[pathX.Length];
-
         Sprite[] pinSprites = Resources.LoadAll<Sprite>("Images/Pins");
-        Sprite[] TileSprites = Resources.LoadAll<Sprite>("Images/Maptiles");
 
 
         int x;
@@ -136,7 +133,7 @@ public class PinMake : MonoBehaviour
         {
             x = (i - 1) % mapL;
             y = (i - 1) / mapL;
-            pins[i] = Instantiate(pPrefab, new Vector3(x * 1.25f, y * 1.25f, -1), Quaternion.identity); //핀 생성   
+            pins[i] = Instantiate(pPrefab, new Vector3(x * 1.25f, y * 1.25f, -1), Quaternion.identity); //핀 생성
 
             pins[i].transform.SetParent(gridPins, false); //핀을 Grid_Pins의 자식으로 지정
             pins[i].name = "Pin " + x + "," + y; ; ; //핀 이름 지정
@@ -185,6 +182,12 @@ public class PinMake : MonoBehaviour
                 }
             }
         }
+    }
+
+    void CreateLines()
+    {
+        GameObject[] lines = new GameObject[pathX.Length];
+        Sprite[] TileSprites = Resources.LoadAll<Sprite>("Images/Maptiles");
 
         for (int i = 1; i < pathX.Length; i++) //선 생성
         {
@@ -216,6 +219,7 @@ public class PinMake : MonoBehaviour
             }
         }
     }
+
     int TransDir(int i)
     {
         return i switch

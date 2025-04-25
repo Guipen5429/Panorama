@@ -17,19 +17,18 @@ public class PathMake : MonoBehaviour
     PinMake pinMake;
     MarkMake markMake;
     RouteMake routeMake;
+    StateMake stateMake;
     public GameObject BackGround;
     LoopBuildings loopBuildings;
     public GameObject Player;
     CharacterMove characterMove;
 
-    public int GStt2;
     public int[] pathX;
     public int[] pathY;
     public int[] bPathX;
     public int[] bPathY;
     List<int> pathXList;
     List<int> pathYList;
-    int[] pathLc;
     int mapL;
     float leftBound; //좌측 연장 경계
     float rightBound; //우측 연장 경계
@@ -37,8 +36,8 @@ public class PathMake : MonoBehaviour
     public int pi;
     public int pt;
 
-    public bool pinCall;
-    public int evntPin;
+    public bool pathCall;
+    public int evntPath;
     public bool call2;
     bool rcv;
     bool rcv2;
@@ -50,6 +49,7 @@ public class PathMake : MonoBehaviour
         routeMake = Map.GetComponent<RouteMake>();
         markMake = Map.GetComponent<MarkMake>(); ;
         pinMake = Map.GetComponent<PinMake>();
+        stateMake = Map.GetComponent<StateMake>();
         loopBuildings = BackGround.GetComponent<LoopBuildings>();
         characterMove = Player.GetComponent<CharacterMove>();
 
@@ -57,10 +57,9 @@ public class PathMake : MonoBehaviour
 
         pathX = new int[] { 0, 1, 2 };
         pathY = new int[] { 0, 0, 0 };
-        GStt2 = 0;
 
-        pinCall = false;
-        evntPin = 0;
+        pathCall = false;
+        evntPath = 0;
         rcv = false;
         rcv2 = true;
     }
@@ -71,176 +70,32 @@ public class PathMake : MonoBehaviour
         int evnt0 = mapEvent.eventTime[0];
         int evnt1 = mapEvent.eventTime[1];
         bool go = mapEvent.go;
-        if (evnt0 == 7 || evnt0 == 8 || evnt0 == 9) { rcv = false; rcv2 = true; pinCall = false; } //default
-        if (evnt0 == 0 || evnt0 == 6 || evnt0 == 8 && rcv2) { rcv = true; }
+        if (evnt0 == 7 || evnt0 == 8 || evnt0 == 9) { rcv = false; rcv2 = true; pathCall = false; } //default
+        if (evnt0 == 0 || evnt0 == 8 && rcv2) { rcv = true; }
 
-        if (evnt0 == 4) { call2 = false; }
-        if (evnt0 == 6)
+        if (evnt0 == 8 && !pathCall && go && rcv)
         {
-            pathLc = new int[pathX.Length];
-            for (int i = 0; i < pathX.Length - 1; i++)
+            if (evnt1 == 1)
             {
-                pathLc[i] = (mapL * pathY[i]) + pathX[i] + 1;
+                pathX = stateMake.pathX;
+                pathY = stateMake.pathY;
             }
-            call2 = false;
-            GameObject[] pins = pinMake.pins;
-            bool[] callPin = new bool[mapL * mapL + 1];
-            for (int i = 1; i < (mapL * mapL + 1); i++)
-            {
-                callPin[i] = pins[i].GetComponent<PinAct>().callPin;
-                if (callPin[i])
-                {
-                    evntPin = 8;
-                    pathXList = new List<int>(pathX);
-                    pathYList = new List<int>(pathY);
-                    CheckState((i - 1) % mapL, (i - 1) / mapL);
-                    pathX = pathXList.ToArray();
-                    pathY = pathYList.ToArray();
-                    rcv = false;
-                    rcv2 = false;
-                    break;
-                }
-            }
-        }
-        if (evnt0 == 8 && !pinCall && go && rcv)
-        {
             BuildPathExpn();
             /*pi = 0;
             bPathX = pathX;
             bPathY = pathY;*/
             switch (evnt1)
             {
-                case 0: case 1: /*BuildPathExpn();*/ evntPin = 7; break;
-                case 2: evntPin = 9; break;
-                case 3: evntPin = 7; break;
+                case 0: case 1: /*BuildPathExpn();*/ evntPath = 7; break;
+                case 2: evntPath = 9; break;
+                case 3: evntPath = 7; break;
             }
-            pinCall = true;
+            pathCall = true;
             rcv = false;
             rcv2 = false;
         }
-
-        if (evnt0 == 3) { GStt2 = 0; }
         if (evnt0 == 9) { BoundMake(); }
-        if (evnt0 == 0 && !pinCall && go && rcv)
-        {
-            PathExpn();
-        }
-
-    }
-
-    public void CheckState(int x, int y)
-    {
-        int[,] pinState = routeMake.pinState;
-        int p = markMake.p;
-
-        switch (pinState[x, y])
-        {
-            case 1: case 7: Ctrc(Array.IndexOf(pathLc, mapL * y + x + 1)); pinCall = true; break;
-            case 2:
-                switch (GStt2)
-                {
-                    case 0:
-                        if (pinState[pathX[1], pathY[1]] == 6)
-                        {
-                            pathXList.RemoveAt(0);
-                            pathYList.RemoveAt(0);
-                            call2 = true;
-                        } break;
-                    case 1: GStt2 = 0; break;
-                } pinCall = true; break;
-            case 3:
-                switch (GStt2)
-                {
-                    case 0: GStt2 = 1; break;
-                    case 1:
-                        if (pinState[pathX[^2], pathY[^2]] == 6)
-                        {
-                            pathXList.RemoveAt(pathXList.Count - 1);
-                            pathYList.RemoveAt(pathYList.Count - 1);
-                        } break;
-                } pinCall = true; break;
-            case 4: if (GStt2 == 0) { Expn(x, y, 0); call2 = true; } break;
-            case 5: if (GStt2 == 1) { Expn(x, y, pathX.Length - 1); } break;
-        }
-    }
-
-    void Expn(int x, int y, int t)
-    {
-        int tx = pathX[t];
-        int ty = pathY[t];
-        if (x == tx)
-        {
-            if (y < ty)
-            {
-                for (int i = ty - 1; i >= y; i--)
-                {
-                    AddInsert(tx, i);
-                }
-            }
-            else
-            {
-                for (int i = ty + 1; i <= y; i++)
-                {
-                    AddInsert(tx, i);
-                }
-            }
-        }
-        else
-        {
-            if (x < tx)
-            {
-                for (int i = tx - 1; i >= x; --i)
-                {
-                    AddInsert(i, ty);
-                }
-            }
-            else
-            {
-                for (int i = tx + 1; i <= x; ++i)
-                {
-                    AddInsert(i, ty);
-                }
-            }
-        }
-
-        void AddInsert(int x, int y)
-        {
-            if (t == 0)
-            {
-                pathXList.Insert(0, x);
-                pathYList.Insert(0, y);
-            }
-            else
-            {
-                pathXList.Add(x);
-                pathYList.Add(y);
-            }
-        }
-        pinCall = true;
-    }
-
-    void Ctrc(int index)
-    {
-        int p = markMake.p;
-        if (index <= p)
-        {
-            for (int i = 0; i < index; i++)
-            {
-                pathXList.RemoveAt(0);
-                pathYList.RemoveAt(0);
-            }
-            GStt2 = 0;
-            call2 = true;
-        }
-        else
-        {
-            for (int i = pathXList.Count - 1; i > index; i--)
-            {
-                pathXList.RemoveAt(pathXList.Count - 1);
-                pathYList.RemoveAt(pathYList.Count - 1);
-            }
-            GStt2 = 1;
-        }
+        if (evnt0 == 0 && !pathCall && go && rcv) { PathExpn(); }
     }
 
     void BuildPathExpn()
@@ -474,8 +329,8 @@ public class PathMake : MonoBehaviour
             pathXList.Insert(0, bPathX[pi - 1]);
             pathYList.Insert(0, bPathY[pi - 1]);
             Debug.Log("좌로 연장");
-            evntPin = 2;
-            pinCall = true;
+            evntPath = 2;
+            pathCall = true;
             rcv = false;
             rcv2 = false;
         }
@@ -484,8 +339,8 @@ public class PathMake : MonoBehaviour
             pathXList.Add(bPathX[pi + pathX.Length]);
             pathYList.Add(bPathY[pi + pathY.Length]);
             Debug.Log("우로 연장");
-            evntPin = 2;
-            pinCall = true;
+            evntPath = 2;
+            pathCall = true;
             rcv = false;
             rcv2 = false;
         }
@@ -493,40 +348,3 @@ public class PathMake : MonoBehaviour
         pathY = pathYList.ToArray();
     }
 }
-
-/*class Terrain //실험
-{
-    enum PathSort
-    {
-        Nothing, Cross,
-        Tup, Tright, Tdown, Tleft,
-        Lup, Lright, Ldown, Lleft,
-        Iup, Idown,
-        iup, iright, idown, ileft,
-        CurveLup, CurveLright, CurveLdown, CurveLleft,
-    }
-
-    int Tiling(bool[] boolArray)
-    {
-        string binaryString = string.Join("", Array.ConvertAll(boolArray, b => b ? "1" : "0"));
-        return binaryString switch
-        {
-            "00000" => (int)PathSort.Nothing,
-            "11110" => (int)PathSort.Cross,
-            "10110" => (int)PathSort.Tup,
-            "11100" => (int)PathSort.Tright,
-            "01110" => (int)PathSort.Tdown,
-            "11010" => (int)PathSort.Tleft,
-            "10100" => (int)PathSort.Lup,
-            "01100" => (int)PathSort.Lright,
-            "01010" => (int)PathSort.Ldown,
-            "10010" => (int)PathSort.Lleft,
-            "11000" => (int)PathSort.Iup,
-            "00110" => (int)PathSort.Idown,
-            "10101" => (int)PathSort.CurveLup,
-            "01101" => (int)PathSort.CurveLright,
-            "01011" => (int)PathSort.CurveLdown,
-            "10011" => (int)PathSort.CurveLleft,
-        };
-    }
-}*/

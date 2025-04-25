@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -15,8 +16,12 @@ public class RouteMake : MonoBehaviour
     MapEvent mapEvent;
     MarkMake markMake;
     PathMake pathMake;
+    StateMake stateMake;
     public GameObject BackGround;
     LoopBuildings loopBuildings;
+
+    public Transform gridPins;
+    public GameObject wPrefab;
 
     public int[,] pinState; //гиюг ╩Себ
     public int[,] pathDir;
@@ -35,6 +40,7 @@ public class RouteMake : MonoBehaviour
         mapEvent = Map.GetComponent<MapEvent>();
         pathMake = Map.GetComponent<PathMake>();
         markMake = Map.GetComponent<MarkMake>();
+        stateMake = Map.GetComponent<StateMake>();
         loopBuildings = BackGround.GetComponent<LoopBuildings>();
 
         mapL = loopBuildings.mapL;
@@ -73,7 +79,7 @@ public class RouteMake : MonoBehaviour
         {
             pathX = pathMake.pathX;
             pathY = pathMake.pathY;
-            GStt[2] = pathMake.GStt2;
+            GStt[2] = stateMake.GStt2;
 
             RouteStt();
             WhiteExpn();
@@ -164,10 +170,12 @@ public class RouteMake : MonoBehaviour
     void WhiteExpn()
     {
         int i = GStt[2] == 0 ? 0 : pathX.Length - 1;
+        int ii = GStt[2] == 0 ? 1 : pathX.Length - 2;
         int j = GStt[2] == 0 ? 4 : 5;
         int[,] map = loopBuildings.map;
         bool hb = true;
         bool b = true;
+        int evnt1 = mapEvent.eventTime[1];
 
         int k = pathY[i] + 1; while (k < mapL)
         {
@@ -187,6 +195,11 @@ public class RouteMake : MonoBehaviour
                 {
                     pinState[pathX[i], k] = j; k++; hb = true; b = true;
                 }
+            }
+            else if (k == pathY[i] + 1 && pathY[ii] != k && evnt1 == 1)
+            {
+                CreateMoreWhite(0);
+                break;
             }
             else
             {
@@ -212,6 +225,11 @@ public class RouteMake : MonoBehaviour
                     pinState[pathX[i], k] = j; k--; hb = true; b = true;
                 }
             }
+            else if (k == pathY[i] - 1 && pathY[ii] != k && evnt1 == 1)
+            {
+                CreateMoreWhite(1);
+                break;
+            }
             else
             {
                 break;
@@ -235,6 +253,11 @@ public class RouteMake : MonoBehaviour
                 {
                     pinState[k, pathY[i]] = j; k++; hb = true; b = true;
                 }
+            }
+            else if (k == pathX[i] + 1 && pathX[ii] != k && evnt1 == 1)
+            {
+                CreateMoreWhite(2);
+                break;
             }
             else
             {
@@ -260,10 +283,50 @@ public class RouteMake : MonoBehaviour
                     pinState[k, pathY[i]] = j; k--; hb = true; b = true;
                 }
             }
+            else if (k == pathX[i] - 1 && pathX[ii] != k && evnt1 == 1)
+            {
+                CreateMoreWhite(3);
+                break;
+            }
             else
             {
                 break;
             }
+        }
+    }
+
+    void CreateMoreWhite(int dir)
+    {
+        int i = GStt[2] == 0 ? 0 : pathX.Length - 1;
+        int j = GStt[2] == 0 ? 4 : 5;
+        float prex = pathX[i] * 1.25f;
+        float prey = pathY[i] * 1.25f;
+        float x = prex;
+        float y = prey;
+        switch (dir)
+        {
+            case 0: y = (pathY[i] + 1) * 1.25f; break;
+            case 1: y = (pathY[i] - 1) * 1.25f; break;
+            case 2: x = (pathX[i] + 1) * 1.25f; break;
+            case 3: x = (pathX[i] - 1) * 1.25f; break;
+        }
+
+        GameObject[] wpins = new GameObject[8];
+        Sprite[] pinSprites = Resources.LoadAll<Sprite>("Images/Pins");
+        
+        wpins[((dir + 1) * (GStt[2] == 0 ? 1 : 2)) - 1] = Instantiate(wPrefab, 
+            new Vector3(Average(x, prex), Average(y, prey), -2),
+            Quaternion.identity);
+        wpins[((dir + 1) * (GStt[2] == 0 ? 1 : 2)) - 1].transform.SetParent(gridPins, false);
+        wpins[((dir + 1) * (GStt[2] == 0 ? 1 : 2)) - 1].name = "WPin " + GStt[2] + "," + dir;
+        wpins[((dir + 1) * (GStt[2] == 0 ? 1 : 2)) - 1].AddComponent<WhitePinAct>();
+
+        SpriteRenderer wpinImage = wpins[((dir + 1) * (GStt[2] == 0 ? 1 : 2)) - 1].GetComponent<SpriteRenderer>();
+        wpinImage.sprite = pinSprites[15];
+
+        static float Average(float a, float b)
+        {
+            return (a + b) / 2;
         }
     }
 }
