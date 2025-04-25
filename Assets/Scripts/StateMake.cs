@@ -76,6 +76,11 @@ public class StateMake : MonoBehaviour
                 catch { Debug.Log(i); }
             }
         }
+        if (evnt0 == 7)
+        {
+            pathX = pathMake.pathX;
+            pathY = pathMake.pathY;
+        }
         if (evnt0 == 6)
         {
             for (int i = 1; i < ((mapL * mapL) + 1); i++)
@@ -83,8 +88,6 @@ public class StateMake : MonoBehaviour
                 callPin[i] = pinMake.pins[i].GetComponent<PinAct>().callPin;
                 if (Array.IndexOf(callPin, true) != -1 && go && rcv)
                 {
-                    pathX = pathMake.pathX;
-                    pathY = pathMake.pathY;
                     evntPin = 8;
                     pathXList = new List<int>(pathX);
                     pathYList = new List<int>(pathY);

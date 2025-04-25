@@ -1016,8 +1016,9 @@ GameObject:
   - component: {fileID: 1135349586}
   - component: {fileID: 1135349593}
   - component: {fileID: 1135349592}
-  - component: {fileID: 1135349590}
   - component: {fileID: 1135349591}
+  - component: {fileID: 1135349594}
+  - component: {fileID: 1135349590}
   - component: {fileID: 1135349587}
   m_Layer: 0
   m_Name: Map
@@ -1098,6 +1099,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Map: {fileID: 1135349584}
   BackGround: {fileID: 852505436}
+  gridPins: {fileID: 413813486}
+  wPrefab: {fileID: 4309515368102960383, guid: 26078ad4c9922b54a933fcb367498514, type: 3}
   GStt: 
   callR: 0
   evntR: 0
@@ -1116,15 +1119,14 @@ MonoBehaviour:
   Map: {fileID: 1135349584}
   BackGround: {fileID: 852505436}
   Player: {fileID: 1376676494}
-  GStt2: 0
   pathX: 
   pathY: 
   bPathX: 
   bPathY: 
   pi: 0
   pt: 0
-  pinCall: 0
-  evntPin: 0
+  pathCall: 0
+  evntPath: 0
   call2: 0
 --- !u!114 &1135349592
 MonoBehaviour:
@@ -1163,11 +1165,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Map: {fileID: 1135349584}
   BackGround: {fileID: 852505436}
+  gridPins: {fileID: 413813486}
   pPrefab: {fileID: 4309515368102960383, guid: c31dd1a77c0f73f4eb9ee8be7ebf82f4, type: 3}
+  gridLines: {fileID: 861409261}
   lPrefab: {fileID: 5184779818209998183, guid: 40f888a9b3989e94a8c0d6c5cb95f5de, type: 3}
   callP: 0
   evntP: 0
   pins: []
+--- !u!114 &1135349594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1135349584}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce62a93df20b4dc49b11ecb53163c773, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Map: {fileID: 1135349584}
+  BackGround: {fileID: 852505436}
+  Player: {fileID: 1376676494}
+  GStt2: 0
+  pathX: 
+  pathY: 
+  pi: 0
+  pt: 0
+  pinCall: 0
+  evntPin: 0
+  call2: 0
 --- !u!1 &1280643883
 GameObject:
   m_ObjectHideFlags: 0
@@ -1212,7 +1239,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18aa2d181fd23894e83778f74d003bbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapChoice: 9
+  mapChoice: 5
   mapImage: {fileID: 62041824}
   MapSprites:
   - {fileID: 21300000, guid: cc3fd66590db06a4f9fa178e3deb12ee, type: 3}
